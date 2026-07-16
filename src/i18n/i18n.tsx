@@ -49,6 +49,12 @@ const english = {
       {
         alt: "Norma OS workspace with multiple live Agent, Browser and Terminal nodes",
       },
+      {
+        alt: "Norma OS workspace with one focused Codex agent and supporting Agent and Terminal nodes",
+      },
+      {
+        alt: "Norma OS workspace with an active Codex conversation and parallel Agent and Terminal nodes",
+      },
     ],
     promise: "Your project, still running.",
   },
@@ -214,6 +220,8 @@ const chinese: Dictionary = {
     slides: [
       { alt: "等待创建新工作区的 Norma OS 空间画布" },
       { alt: "Norma OS 工作区中同时运行多个 Agent、Browser 与 Terminal 节点" },
+      { alt: "Norma OS 工作区中一个聚焦的 Codex Agent 与辅助 Agent、Terminal 节点" },
+      { alt: "Norma OS 工作区中活跃的 Codex 对话与并行 Agent、Terminal 节点" },
     ],
     promise: "你的项目，仍在运行。",
   },

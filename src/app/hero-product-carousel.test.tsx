@@ -597,4 +597,162 @@ describe("首屏产品截图轮播", () => {
       "左方向键返回后第二张工作区截图不应继续作为当前图片暴露",
     ).toBeNull();
   });
+
+  /// 四图扩展导航：新增截图必须可由页码直达，并与下一张按钮共同形成完整的 3 → 4 → 1 循环。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   slides          = 4 张，合法索引为 0、1、2、3
+  ///   direct index    = screenshot 3 → active index = 2
+  ///   next index      = (2 + 1) mod 4 = 3 → screenshot 4
+  ///   wrapped index   = (3 + 1) mod 4 = 0 → screenshot 1
+  ///   page controls   = 4 个，任一时刻仅 1 个 aria-pressed=true
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 渲染完整 Home 并查询第 3、4 页码 → 确认新增素材拥有独立入口
+  ///   2. 点击第 3 页 → 聚焦 Codex Agent 截图成为当前图片
+  ///   3. 点击下一张 → 连续前进到第 4 张 Agent 协作截图
+  ///   4. 再点击下一张 → 按四图取模公式循环回第 1 张空画布
+  ///   5. 直接点击第 4 页 → 确认末页也能独立直达并正确标记当前页
+  ///
+  /// 预期结果：
+  ///   - 正断言：第 3、4 页码、两张新增截图和 4 → 1 循环逐一成立
+  ///   - 负断言：每次切换后上一张不得继续作为当前图片，第 4 页激活时第 1 页不得仍被按下
+  it("支持四张产品截图完整导航并从末页循环回首张", () => {
+    render(<Home />);
+
+    const carousel = screen.getByRole("region", {
+      name: carouselLabels.label,
+    });
+    const firstPage = within(carousel).getByRole("button", {
+      name: "Show screenshot 1",
+    });
+    const thirdPage = within(carousel).getByRole("button", {
+      name: "Show screenshot 3",
+    });
+    const fourthPage = within(carousel).getByRole("button", {
+      name: "Show screenshot 4",
+    });
+    const nextButton = within(carousel).getByRole("button", {
+      name: carouselLabels.nextLabel,
+    });
+
+    expect(thirdPage, "四图轮播必须为新增的第 3 张截图提供直接选择按钮").toBeTruthy();
+    expect(fourthPage, "四图轮播必须为新增的第 4 张截图提供直接选择按钮").toBeTruthy();
+
+    fireEvent.click(thirdPage);
+    expect(
+      within(carousel).getByRole("img", {
+        name: "Norma OS workspace with one focused Codex agent and supporting Agent and Terminal nodes",
+      }),
+      "点击第 3 页后必须显示聚焦 Codex Agent 的新增截图",
+    ).toBeTruthy();
+    expect(
+      within(carousel).queryByRole("img", { name: singleCanvasSlide[0].alt }),
+      "第 3 张激活时首张空画布不得继续作为当前图片暴露",
+    ).toBeNull();
+
+    fireEvent.click(nextButton);
+    expect(
+      within(carousel).getByRole("img", {
+        name: "Norma OS workspace with an active Codex conversation and parallel Agent and Terminal nodes",
+      }),
+      "从第 3 张点击下一张后必须连续前进到第 4 张 Agent 协作截图",
+    ).toBeTruthy();
+    expect(
+      within(carousel).queryByRole("img", {
+        name: "Norma OS workspace with one focused Codex agent and supporting Agent and Terminal nodes",
+      }),
+      "前进到第 4 张后第 3 张不得继续作为当前图片暴露",
+    ).toBeNull();
+
+    fireEvent.click(nextButton);
+    expect(
+      within(carousel).getByRole("img", { name: singleCanvasSlide[0].alt }),
+      "从第 4 张点击下一张后必须按四图循环回首张空画布",
+    ).toBeTruthy();
+    expect(
+      within(carousel).queryByRole("img", {
+        name: "Norma OS workspace with an active Codex conversation and parallel Agent and Terminal nodes",
+      }),
+      "循环回首张后第 4 张不得继续作为当前图片暴露",
+    ).toBeNull();
+
+    fireEvent.click(fourthPage);
+    expect(
+      fourthPage.getAttribute("aria-pressed"),
+      "直接选择第 4 张后其页码必须标记为当前页",
+    ).toBe("true");
+    expect(
+      firstPage.getAttribute("aria-pressed"),
+      "第 4 张激活时第 1 页码不得继续标记为当前页",
+    ).toBe("false");
+  });
+
+  /// 中文无障碍描述：切换语言后，两张新增截图的页码和 alt 必须同步使用中文词典。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   locale controls  = EN + 中文 = 2 个语言按钮
+  ///   new slides       = screenshot 3 + screenshot 4 = 2 张新增截图
+  ///   localized labels = “显示截图 3” + “显示截图 4” = 2 个中文页码名称
+  ///   active images    = 每次 1 张；非当前图片退出无障碍树
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 渲染默认英文 Home 并点击“中文” → i18n provider 切换词典
+  ///   2. 查询中文轮播区域和第 3 页码 → 确认控制名称已本地化
+  ///   3. 点击第 3 页 → 查询聚焦 Codex Agent 的中文 alt，并排除英文 alt
+  ///   4. 点击第 4 页 → 查询 Agent 协作状态的中文 alt，并排除英文 alt
+  ///
+  /// 预期结果：
+  ///   - 正断言：中文区域、两个中文页码和两条新增中文 alt 逐一存在
+  ///   - 负断言：切换中文后两张新增截图不得继续暴露英文 alt
+  it("切换中文后为两张新增截图提供本地化描述", () => {
+    render(<Home />);
+
+    const chineseButtons = screen.getAllByRole("button", { name: "中文" });
+    expect(
+      chineseButtons,
+      "页面必须分别为桌面和移动导航提供中文语言切换按钮",
+    ).toHaveLength(2);
+    fireEvent.click(chineseButtons[0]);
+
+    const carousel = screen.getByRole("region", {
+      name: "Norma OS 产品截图",
+    });
+    const thirdPage = within(carousel).getByRole("button", {
+      name: "显示截图 3",
+    });
+    const fourthPage = within(carousel).getByRole("button", {
+      name: "显示截图 4",
+    });
+    expect(thirdPage, "中文轮播必须为第 3 张截图提供本地化页码名称").toBeTruthy();
+    expect(fourthPage, "中文轮播必须为第 4 张截图提供本地化页码名称").toBeTruthy();
+
+    fireEvent.click(thirdPage);
+    expect(
+      within(carousel).getByRole("img", {
+        name: "Norma OS 工作区中一个聚焦的 Codex Agent 与辅助 Agent、Terminal 节点",
+      }),
+      "中文模式第 3 张必须提供聚焦 Codex Agent 的本地化描述",
+    ).toBeTruthy();
+    expect(
+      within(carousel).queryByRole("img", {
+        name: "Norma OS workspace with one focused Codex agent and supporting Agent and Terminal nodes",
+      }),
+      "切换中文后第 3 张不得继续暴露英文 alt",
+    ).toBeNull();
+
+    fireEvent.click(fourthPage);
+    expect(
+      within(carousel).getByRole("img", {
+        name: "Norma OS 工作区中活跃的 Codex 对话与并行 Agent、Terminal 节点",
+      }),
+      "中文模式第 4 张必须提供 Agent 协作状态的本地化描述",
+    ).toBeTruthy();
+    expect(
+      within(carousel).queryByRole("img", {
+        name: "Norma OS workspace with an active Codex conversation and parallel Agent and Terminal nodes",
+      }),
+      "切换中文后第 4 张不得继续暴露英文 alt",
+    ).toBeNull();
+  });
 });

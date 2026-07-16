@@ -138,6 +138,14 @@ function Hero() {
       alt: t.hero.slides[1].alt,
       src: "/brand/norma-workspace-live-nodes.webp",
     },
+    {
+      alt: t.hero.slides[2].alt,
+      src: "/brand/norma-workspace-focused-agent.webp",
+    },
+    {
+      alt: t.hero.slides[3].alt,
+      src: "/brand/norma-workspace-agent-collaboration.webp",
+    },
   ] as const;
 
   return (
