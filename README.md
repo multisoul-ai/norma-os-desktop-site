@@ -32,7 +32,7 @@ pnpm build
 GitHub 仓库：
 
 ```text
-https://github.com/multisoul-ai/multisoul-desktop-site
+https://github.com/multisoul-ai/norma-os-desktop-site
 ```
 
 `.github/workflows/publish.yml` 会在 pull request 和 `main` 推送时执行完整的测试、lint 与生产构建。只有 `main` 推送会继续发布到 Vercel。
