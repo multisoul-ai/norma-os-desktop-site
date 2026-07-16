@@ -76,6 +76,10 @@ const english = {
     titleTwo: "what it's doing.",
     body: "Hooks translate reasoning, tool calls, permission prompts, completion and failure into quiet, legible feedback.",
     details: ["Reasoning", "Calling a tool", "Waiting for input", "Task complete", "Needs attention"],
+    mascotAlt: "Norma, the AI soul, with lilac hair, a white X hair clip and a composed expression",
+    mascotName: "Norma",
+    mascotRole: "THE AI SOUL",
+    mascotNote: "Intelligence with a point of view.",
   },
   capabilities: {
     index: "04 / CAPABILITIES",
@@ -221,6 +225,10 @@ const chinese: Dictionary = {
     titleTwo: "它在做什么。",
     body: "Hooks 将思考、工具调用、权限确认、完成与失败翻译成轻量而明确的反馈。",
     details: ["持续推理", "调用工具", "等待确认", "任务完成", "需要注意"],
+    mascotAlt: "Norma——拥有浅紫色长发、白色 X 发夹与从容神情的 AI 灵魂",
+    mascotName: "Norma",
+    mascotRole: "AI 灵魂",
+    mascotNote: "有观点，也有温度的智能伙伴。",
   },
   capabilities: {
     index: "04 / 核心能力",

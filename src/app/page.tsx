@@ -131,8 +131,24 @@ function Hero() {
 
   return (
     <section className="hero" id="top" aria-labelledby="hero-title">
+      <div className="hero__optical-material" aria-hidden="true">
+        <Image
+          alt=""
+          className="hero__optical-image"
+          height={941}
+          priority
+          sizes="100vw"
+          src="/brand/liquid-glass-hero.png"
+          width={1672}
+        />
+      </div>
       <div className="hero__ambient hero__ambient--one" aria-hidden="true" />
       <div className="hero__ambient hero__ambient--two" aria-hidden="true" />
+      <div className="soul-fragments" aria-hidden="true" data-material="liquid-glass">
+        <span className="soul-fragment soul-fragment--violet" />
+        <span className="soul-fragment soul-fragment--mint" />
+        <span className="soul-fragment soul-fragment--clear" />
+      </div>
 
       <div className="hero__copy">
         <p className="eyebrow reveal reveal--one">
@@ -350,6 +366,16 @@ function LiveNodes() {
 
   return (
     <section className="live-section" id="live-nodes" aria-labelledby="live-title">
+      <div className="live-section__material" aria-hidden="true">
+        <Image
+          alt=""
+          className="live-section__material-image"
+          height={941}
+          sizes="100vw"
+          src="/brand/liquid-glass-flow.png"
+          width={1672}
+        />
+      </div>
       <div className="live-section__glow" aria-hidden="true" />
       <div className="live-section__copy">
         <p className="section-index section-index--light">{t.live.index}</p>
@@ -404,6 +430,23 @@ function StatusLanguage() {
           <span>{t.status.titleTwo}</span>
         </h2>
         <p>{t.status.body}</p>
+        <figure className="norma-presence" data-material="liquid-glass">
+          <div className="norma-presence__portrait">
+            <Image
+              alt={t.status.mascotAlt}
+              className="norma-presence__image"
+              height={1402}
+              sizes="(max-width: 680px) 120px, 160px"
+              src="/brand/norma-ai-soul.png"
+              width={1122}
+            />
+          </div>
+          <figcaption>
+            <span>{t.status.mascotRole}</span>
+            <strong>{t.status.mascotName}</strong>
+            <small>{t.status.mascotNote}</small>
+          </figcaption>
+        </figure>
       </div>
 
       <div className="status-console">

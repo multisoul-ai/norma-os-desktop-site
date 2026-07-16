@@ -3,6 +3,85 @@ import { describe, expect, it } from "vitest";
 import Home from "./page";
 
 describe("Norma OS 官网", () => {
+  /// Liquid Glass 品牌升级：首屏与 Live Nodes 使用经过品牌约束的光学素材，并保持装饰层不干扰无障碍阅读。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   generated assets = liquid-glass-hero.png + liquid-glass-flow.png = 2 张生产素材
+  ///   glass layers     = hero atmosphere + live atmosphere + floating soul fragments = 3 类视觉层
+  ///   readable images  = product screenshots（保留描述性 alt）
+  ///   decorative media = 2 张光学素材 + soul fragments（全部 aria-hidden）
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 服务端渲染 Home → 得到页面静态 HTML
+  ///   2. 逐一检查暖白与深色光学素材 → 确认生成物真正接入生产页面
+  ///   3. 检查 Liquid Glass 容器与 soul fragments → 确认材质层有可维护的结构钩子
+  ///   4. 检查装饰媒体语义 → 确认视觉升级不会增加屏幕阅读器噪声
+  ///   5. 排除把素材暴露为内容图片的 alt → 避免用户误以为装饰是产品截图
+  ///
+  /// 预期结果：
+  ///   - 正断言：2 张生成素材、Liquid Glass 容器和 soul fragments 逐一存在
+  ///   - 正断言：2 张生成素材都位于 aria-hidden 的装饰容器中
+  ///   - 负断言：装饰素材不应拥有误导性的描述 alt
+  it("接入品牌化 Liquid Glass 素材且保持装饰层语义安静", () => {
+    const html = renderToStaticMarkup(<Home />);
+
+    expect(html, "首屏必须接入暖白 Liquid Glass 生成素材").toContain(
+      "liquid-glass-hero.png",
+    );
+    expect(html, "Live Nodes 必须接入深色 Liquid Glass 流带素材").toContain(
+      "liquid-glass-flow.png",
+    );
+    expect(html, "页面必须提供统一的 Liquid Glass 材质容器").toContain(
+      'data-material="liquid-glass"',
+    );
+    expect(html, "首屏必须提供可独立运动的 soul fragments 装饰层").toContain(
+      'class="soul-fragments"',
+    );
+    expect(html, "首屏光学素材必须隐藏于无障碍树").toMatch(
+      /class="hero__optical-material" aria-hidden="true"/,
+    );
+    expect(html, "Live Nodes 光学素材必须隐藏于无障碍树").toMatch(
+      /class="live-section__material" aria-hidden="true"/,
+    );
+    expect(html, "装饰素材不应使用伪装成产品内容的 alt 文本").not.toContain(
+      'alt="Liquid Glass',
+    );
+  });
+
+  /// Norma 吉祥物展示：状态语言章节使用正式生成素材介绍 AI Soul，而不是把角色降格为无语义贴纸。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   mascot asset     = norma-ai-soul.png = 1 张角色生产素材
+  ///   identity copy    = “Norma” + “THE AI SOUL” = 2 个固定识别信息
+  ///   accessibility    = 1 个描述性 alt，向非视觉用户解释角色身份与外观
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 服务端渲染 Home → 得到默认英文 HTML
+  ///   2. 检查角色生产素材与固定身份文案 → 确认吉祥物真正进入页面叙事
+  ///   3. 检查描述性 alt → 确认角色不是被错误隐藏的纯装饰
+  ///   4. 排除旧品牌名 → 确认参考图中的旧身份没有进入正式输出
+  ///
+  /// 预期结果：
+  ///   - 正断言：角色素材、Norma 名称、AI Soul 角色和描述性 alt 逐一存在
+  ///   - 负断言：角色区域不得重新引入旧品牌 MultiSoul
+  it("把 Norma 吉祥物作为可理解的 AI Soul 品牌角色呈现", () => {
+    const html = renderToStaticMarkup(<Home />);
+
+    expect(html, "状态语言章节必须接入 Norma 吉祥物生产素材").toContain(
+      "norma-ai-soul.png",
+    );
+    expect(html, "吉祥物卡片必须明确显示角色名 Norma").toContain(
+      ">Norma<",
+    );
+    expect(html, "吉祥物卡片必须明确说明 THE AI SOUL 角色定位").toContain(
+      "THE AI SOUL",
+    );
+    expect(html, "吉祥物图片必须提供描述角色固定识别特征的 alt").toContain(
+      'alt="Norma, the AI soul, with lilac hair, a white X hair clip and a composed expression"',
+    );
+    expect(html, "吉祥物区域不得出现旧品牌 MultiSoul").not.toContain("MultiSoul");
+  });
+
   /// 首页面向首次访问者：默认以英文说清产品定位、核心对象与当前范围。
   ///
   /// 数据构造（含关键数值的推导过程）：
