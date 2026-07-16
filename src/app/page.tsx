@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { I18nProvider, useI18n } from "../i18n/i18n";
 import { LanguageSwitcher } from "../i18n/language-switcher";
+import { HeroProductCarousel } from "./hero-product-carousel";
 
 const capabilityMeta = [
   {
@@ -128,6 +129,16 @@ function Header() {
 
 function Hero() {
   const { dictionary: t } = useI18n();
+  const productSlides = [
+    {
+      alt: t.hero.slides[0].alt,
+      src: "/brand/norma-workspace-canvas.webp",
+    },
+    {
+      alt: t.hero.slides[1].alt,
+      src: "/brand/norma-workspace-live-nodes.webp",
+    },
+  ] as const;
 
   return (
     <section className="hero" id="top" aria-labelledby="hero-title">
@@ -179,14 +190,12 @@ function Hero() {
       <div className="hero-device reveal reveal--five">
         <div className="hero-device__camera" aria-hidden="true" />
         <div className="hero-device__screen">
-          <Image
-            alt={t.hero.imageAlt}
-            className="hero-device__image"
-            height={941}
-            priority
-            sizes="(max-width: 760px) 95vw, 1180px"
-            src="/brand/hero-infinite-canvas.png"
-            width={1672}
+          <HeroProductCarousel
+            label={t.hero.carouselLabel}
+            nextLabel={t.hero.nextScreenshot}
+            previousLabel={t.hero.previousScreenshot}
+            showLabel={t.hero.showScreenshot}
+            slides={productSlides}
           />
         </div>
         <div className="hero-device__chin" aria-hidden="true">

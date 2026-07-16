@@ -3,6 +3,52 @@ import { describe, expect, it } from "vitest";
 import Home from "./page";
 
 describe("Norma OS 官网", () => {
+  /// 首屏产品展示面向首次访问者：显示器内必须呈现真实产品截图，而不是早期概念占位图。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   product screenshots = live nodes workspace + empty spatial canvas = 2 张真实 2560 × 1440 WebP
+  ///   aspect ratio        = 2560 / 1440 = 16 / 9，与现有显示器屏幕比例一致
+  ///   legacy placeholder  = hero-infinite-canvas.png = 1 张需要移除的概念图
+  ///   carousel region     = 1 个带可访问名称的产品截图区域
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 服务端渲染 Home → 得到首屏访问者实际收到的 HTML
+  ///   2. 检查两张真实截图路径 → 确认产品的工作状态与空画布状态都进入轮播
+  ///   3. 比较两张截图在 HTML 中的位置 → 确认空白画布是初始首张，多节点工作区是第二张
+  ///   4. 检查两张截图的独立 alt → 确认非视觉用户能够区分两个产品状态
+  ///   5. 检查轮播区域名称 → 确认多张截图被组织成一个可理解的页面区域
+  ///   6. 排除旧概念图路径 → 防止真实截图只被追加、占位内容仍继续展示
+  ///
+  /// 预期结果：
+  ///   - 正断言：空白画布排在首张，且两张真实截图、两条描述性 alt 与轮播区域逐一存在
+  ///   - 负断言：旧的 hero-infinite-canvas.png 不应继续出现在首屏 HTML
+  it("用两张真实产品截图替换首屏概念占位图", () => {
+    const html = renderToStaticMarkup(<Home />);
+
+    expect(html, "首屏轮播必须包含展示多个 Live Node 的真实产品截图").toContain(
+      "norma-workspace-live-nodes.webp",
+    );
+    expect(html, "首屏轮播必须包含空白空间画布的真实产品截图").toContain(
+      "norma-workspace-canvas.webp",
+    );
+    expect(
+      html.indexOf("norma-workspace-canvas.webp"),
+      "空白空间画布必须作为轮播首张，路径应早于 Live Nodes 截图出现",
+    ).toBeLessThan(html.indexOf("norma-workspace-live-nodes.webp"));
+    expect(html, "Live Nodes 截图必须提供可区分产品状态的描述性 alt").toContain(
+      'alt="Norma OS workspace with multiple live Agent, Browser and Terminal nodes"',
+    );
+    expect(html, "空白画布截图必须提供可区分产品状态的描述性 alt").toContain(
+      'alt="Norma OS spatial canvas ready for a new workspace"',
+    );
+    expect(html, "两张截图必须被组织进带名称的产品截图轮播区域").toContain(
+      'aria-label="Norma OS product screenshots"',
+    );
+    expect(html, "旧的概念占位图必须从首屏展示中移除").not.toContain(
+      "hero-infinite-canvas.png",
+    );
+  });
+
   /// Liquid Glass 品牌升级：首屏与 Live Nodes 使用经过品牌约束的光学素材，并保持装饰层不干扰无障碍阅读。
   ///
   /// 数据构造（含关键数值的推导过程）：

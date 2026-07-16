@@ -38,7 +38,18 @@ const english = {
     descriptionTwo: "Bring terminals, AI agents, the web and files onto one infinite canvas.",
     primaryAction: "Explore Norma OS",
     secondaryAction: "See how it works",
-    imageAlt: "The Norma OS infinite canvas running Terminal, Agent, Browser and Preview cards together",
+    carouselLabel: "Norma OS product screenshots",
+    nextScreenshot: "Next screenshot",
+    previousScreenshot: "Previous screenshot",
+    showScreenshot: "Show screenshot",
+    slides: [
+      {
+        alt: "Norma OS spatial canvas ready for a new workspace",
+      },
+      {
+        alt: "Norma OS workspace with multiple live Agent, Browser and Terminal nodes",
+      },
+    ],
     promise: "Your project, still running.",
   },
   product: {
@@ -196,7 +207,14 @@ const chinese: Dictionary = {
     descriptionTwo: "把终端、AI Agent、网页和文件放进同一张无限画布。",
     primaryAction: "探索 Norma OS",
     secondaryAction: "看看它如何工作",
-    imageAlt: "Norma OS 无限画布中同时运行 Terminal、Agent、Browser 和 Preview 卡片",
+    carouselLabel: "Norma OS 产品截图",
+    nextScreenshot: "下一张截图",
+    previousScreenshot: "上一张截图",
+    showScreenshot: "显示截图",
+    slides: [
+      { alt: "等待创建新工作区的 Norma OS 空间画布" },
+      { alt: "Norma OS 工作区中同时运行多个 Agent、Browser 与 Terminal 节点" },
+    ],
     promise: "你的项目，仍在运行。",
   },
   product: {
