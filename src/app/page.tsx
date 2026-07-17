@@ -5,6 +5,9 @@ import { I18nProvider, useI18n } from "../i18n/i18n";
 import { LanguageSwitcher } from "../i18n/language-switcher";
 import { HeroProductCarousel } from "./hero-product-carousel";
 
+const latestDownloadUrl =
+  "https://github.com/multisoul-ai/norma-os-releases/releases/latest/download/Norma-OS_aarch64.dmg";
+
 const capabilityMeta = [
   {
     index: "01",
@@ -184,7 +187,7 @@ function Hero() {
           {t.hero.descriptionTwo}
         </p>
         <div className="hero__actions reveal reveal--four">
-          <a className="button button--primary" href="#product">
+          <a className="button button--primary" href={latestDownloadUrl}>
             {t.hero.primaryAction}
             <ArrowIcon />
           </a>

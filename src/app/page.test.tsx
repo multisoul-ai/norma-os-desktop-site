@@ -199,24 +199,27 @@ describe("Norma OS 官网", () => {
     expect(html, "当前版本不应把移动端控制写成主要能力").not.toContain("移动端控制");
   });
 
-  /// 单页导航面向浏览者：每个主要章节都应有可达锚点，并提供克制而真实的 Beta 行动入口。
+  /// 单页导航与下载入口：章节锚点保持可达，首屏主按钮直接下载最新的 Norma OS 安装包。
   ///
   /// 数据构造（含关键数值的推导过程）：
   ///   nav targets      = #product + #live-nodes + #voice + #principles = 4 个主要章节
-  ///   primary action   = #get-beta（当前没有编造外部下载链接）
+  ///   download targets = releases/latest + 固定文件名 Norma-OS_aarch64.dmg = 1 个稳定地址
+  ///   legacy target    = #product（旧主按钮只滚动到产品章节，不能下载）
   ///   invalid action   = apps.apple.com（没有可核验的 Norma OS 商店地址）
   ///
   /// 执行过程（逐步说明系统如何处理）：
   ///   1. 服务端渲染 Home → 得到导航和各 section 的 HTML
   ///   2. 逐一检查导航 href 与对应 section id → 验证页内可达性
-  ///   3. 检查 Beta CTA → 确认行动入口真实落到当前页面
-  ///   4. 排除未提供的 App Store 地址 → 避免制造虚假下载承诺
+  ///   3. 定位首屏主按钮 → 检查它指向 GitHub Latest Release 的固定文件名
+  ///   4. 排除旧的 #product 主按钮和未提供的 App Store 地址 → 避免无效下载入口
   ///
   /// 预期结果：
-  ///   - 正断言：4 个章节锚点与 Beta 锚点逐一存在
-  ///   - 负断言：页面中不应出现无法核验的 App Store 外链
+  ///   - 正断言：4 个章节锚点、Beta 锚点与 1 个真实下载入口逐一存在
+  ///   - 负断言：首屏主按钮不再指向 #product，页面不出现无法核验的 App Store 外链
   it("提供完整且真实的单页导航和行动入口", () => {
     const html = renderToStaticMarkup(<Home />);
+    const latestDownloadUrl =
+      "https://github.com/multisoul-ai/norma-os-releases/releases/latest/download/Norma-OS_aarch64.dmg";
 
     expect(html, "产品导航必须指向 #product").toContain('href="#product"');
     expect(html, "Live Nodes 导航必须指向 #live-nodes").toContain(
@@ -234,7 +237,12 @@ describe("Norma OS 官网", () => {
     expect(html, "设计理念章节必须提供 id=principles 的落点").toContain(
       'id="principles"',
     );
-    expect(html, "首屏 CTA 必须指向站内 Beta 入口").toContain('href="#get-beta"');
+    expect(html, "首屏下载 CTA 必须指向 GitHub Latest Release 的稳定地址").toContain(
+      `<a class="button button--primary" href="${latestDownloadUrl}">`,
+    );
+    expect(html, "首屏下载 CTA 不应继续指向只会滚动页面的旧 #product 目标").not.toContain(
+      '<a class="button button--primary" href="#product">',
+    );
     expect(html, "最终 Beta 区域必须提供对应的锚点落点").toContain('id="get-beta"');
     expect(html, "没有真实下载地址时不得伪造 App Store 外链").not.toContain(
       "apps.apple.com",
