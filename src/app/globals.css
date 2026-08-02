@@ -386,6 +386,87 @@ summary {
   transform: translateY(3px);
 }
 
+.hero__license {
+  display: grid;
+  width: fit-content;
+  max-width: 100%;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  border: 1px solid rgba(107, 109, 100, 0.14);
+  border-radius: 10px;
+  padding: 5px 5px 5px 10px;
+  background: rgba(255, 255, 255, 0.34);
+  color: #595b55;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.065em;
+}
+
+.hero__license-label {
+  flex: none;
+  color: #868880;
+  text-transform: uppercase;
+}
+
+.hero__license code {
+  overflow-wrap: anywhere;
+  color: #343630;
+  font: inherit;
+  user-select: all;
+}
+
+.hero__license-copy {
+  display: inline-flex;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(107, 109, 100, 0.13);
+  border-radius: 7px;
+  padding: 0 8px;
+  background: rgba(255, 255, 255, 0.55);
+  color: #686a64;
+  font: inherit;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.hero__license-copy:hover {
+  border-color: rgba(67, 70, 63, 0.22);
+  background: rgba(255, 255, 255, 0.86);
+  color: #2f312c;
+  transform: translateY(-1px);
+}
+
+.hero__license-copy:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.hero__license-copy[data-copied="true"] {
+  border-color: rgba(54, 102, 73, 0.16);
+  background: rgba(104, 151, 118, 0.12);
+  color: #35664a;
+}
+
+.hero__license-copy svg {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
 .hero__download-note {
   display: flex;
   align-items: center;
@@ -1432,6 +1513,22 @@ main[lang="zh-CN"] .story-step__copy strong {
   .hero__download-note {
     justify-content: center;
     margin-top: 12px;
+  }
+
+  .hero__license {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 8px;
+  }
+
+  .hero__license code {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .hero__license-copy {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .product-stage {

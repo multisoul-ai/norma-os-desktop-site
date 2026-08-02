@@ -5,6 +5,58 @@ import Home from "./(en)/page";
 import ChineseHome from "./(zh)/zh-cn/page";
 
 describe("Norma OS English homepage", () => {
+  /// Beta license handoff: a visitor can download the app and immediately find the exact shared beta credential below the primary action.
+  ///
+  /// Data construction (including derivation of key values):
+  ///   localized pages = English homepage + Chinese homepage = 2 rendered entry points
+  ///   onboarding data = localized license label + exact beta key = 2 visible credential parts per page
+  ///   key structure   = KG + 4 credential blocks = 5 hyphen-separated segments
+  ///
+  /// Execution:
+  ///   1. Server-render both localized homepages → receive the HTML shown before hydration
+  ///   2. Locate each primary download label → establish the visual action that precedes the credential
+  ///   3. Locate the localized license labels and exact key → confirm both audiences receive the same credential
+  ///   4. Compare source order → confirm the credential is rendered after, and therefore below, the download action
+  ///   5. Exclude a credential hyperlink → confirm the key is selectable display text rather than misleading navigation
+  ///
+  /// Expected:
+  ///   - Positive: both localized labels and the exact five-segment key exist after their download actions
+  ///   - Negative: the license key is not emitted as an href destination
+  it("shows the shared beta license below the primary download action", () => {
+    const englishHtml = renderToStaticMarkup(<Home />);
+    const chineseHtml = renderToStaticMarkup(<ChineseHome />);
+    const betaLicenseKey = "KG-WACEHBCB-2ZL4AM23-JBJQJZBG-YVT55VDN";
+    const englishDownloadIndex = englishHtml.indexOf("Download for Mac");
+    const englishLicenseIndex = englishHtml.indexOf(betaLicenseKey);
+    const chineseDownloadIndex = chineseHtml.indexOf("下载 Mac 版");
+    const chineseLicenseIndex = chineseHtml.indexOf(betaLicenseKey);
+
+    expect(
+      englishHtml,
+      "the English hero must identify the credential as a Beta license",
+    ).toContain("Beta license");
+    expect(
+      chineseHtml,
+      "the Chinese hero must identify the credential as an 内测 License",
+    ).toContain("内测 License");
+    expect(
+      englishLicenseIndex,
+      "the exact beta license must appear after the English download action",
+    ).toBeGreaterThan(englishDownloadIndex);
+    expect(
+      chineseLicenseIndex,
+      "the exact beta license must appear after the Chinese download action",
+    ).toBeGreaterThan(chineseDownloadIndex);
+    expect(
+      englishHtml,
+      "the beta license must remain selectable text instead of becoming a navigation target",
+    ).not.toContain(`href="${betaLicenseKey}"`);
+    expect(
+      chineseHtml,
+      "the Chinese page must not turn the beta license into a navigation target",
+    ).not.toContain(`href="${betaLicenseKey}"`);
+  });
+
   /// Split hero: a first-time visitor sees the Command Center positioning, direct download, and product demonstration in one viewport.
   ///
   /// Data construction (including derivation of key values):

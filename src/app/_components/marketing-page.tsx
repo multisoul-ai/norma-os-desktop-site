@@ -1,9 +1,14 @@
 import Link from "next/link";
 import { AutoplayVideo } from "./autoplay-video";
 import { Brand } from "./brand";
+import { LicenseKey } from "./license-key";
 import { ProductStage } from "./product-stage";
 import type { SiteContent } from "../site-content";
-import { githubUrl, latestDownloadUrl } from "../site-constants";
+import {
+  betaLicenseKey,
+  githubUrl,
+  latestDownloadUrl,
+} from "../site-constants";
 import { MobileNavigation } from "./mobile-navigation";
 import { ScrollStory } from "./scroll-story";
 
@@ -100,6 +105,12 @@ function Hero({ content }: { content: SiteContent }) {
             <span aria-hidden="true">↓</span>
           </a>
         </div>
+        <LicenseKey
+          copiedLabel={content.hero.licenseCopiedLabel}
+          copyLabel={content.hero.licenseCopyLabel}
+          label={content.hero.licenseLabel}
+          licenseKey={betaLicenseKey}
+        />
         <p className="hero__download-note">
           {content.hero.platform}
           <span aria-hidden="true">·</span>

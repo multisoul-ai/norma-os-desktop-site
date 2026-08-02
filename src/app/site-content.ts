@@ -59,6 +59,9 @@ export type SiteContent = {
     titleEnd: string;
     description: string;
     download: string;
+    licenseCopiedLabel: string;
+    licenseCopyLabel: string;
+    licenseLabel: string;
     secondaryAction: string;
     platform: string;
     security: string;
@@ -131,6 +134,9 @@ export const englishContent: SiteContent = {
     description:
       "Keep your coding agents—Codex and Claude Code—alongside terminals, previews, and every live task in one workspace. Jump to the right Live Node, reshape the canvas, and notice when an Agent needs you.",
     download: "Download for Mac",
+    licenseCopiedLabel: "Copied",
+    licenseCopyLabel: "Copy",
+    licenseLabel: "Beta license",
     secondaryAction: "See it in action",
     platform: "Apple Silicon",
     security: "Signed & notarized",
@@ -288,6 +294,9 @@ export const chineseContent: SiteContent = {
     description:
       "把 Codex、Claude Code、终端、预览和所有实时任务放进同一个工作区。快速唤起 Live Node、重排画布，并在 Agent 需要你时立即介入。",
     download: "下载 Mac 版",
+    licenseCopiedLabel: "已复制",
+    licenseCopyLabel: "复制",
+    licenseLabel: "内测 License",
     secondaryAction: "查看实际运行",
     platform: "Apple 芯片",
     security: "已签名并公证",
