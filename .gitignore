@@ -8,9 +8,13 @@
 # production
 /build
 
+# local product-demo source recordings
+/public/demo/*.mov
+
 # local
 .DS_Store
 *.pem
+/.multisoul/
 
 # debug
 npm-debug.log*

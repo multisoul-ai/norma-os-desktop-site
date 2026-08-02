@@ -1,251 +1,276 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import Home from "./page";
+import ChineseRootLayout from "./(zh)/layout";
+import Home from "./(en)/page";
+import ChineseHome from "./(zh)/zh-cn/page";
 
-describe("Norma OS 官网", () => {
-  /// 首屏产品展示面向首次访问者：显示器内必须呈现真实产品截图，而不是早期概念占位图。
+describe("Norma OS English homepage", () => {
+  /// Split hero: a first-time visitor sees the Command Center positioning, direct download, and product demonstration in one viewport.
   ///
-  /// 数据构造（含关键数值的推导过程）：
-  ///   product screenshots = empty canvas + live nodes + focused agent + agent collaboration = 4 张真实 2560 × 1440 WebP
-  ///   aspect ratio        = 2560 / 1440 = 16 / 9，与现有显示器屏幕比例一致
-  ///   legacy placeholder  = hero-infinite-canvas.png = 1 张需要移除的概念图
-  ///   carousel region     = 1 个带可访问名称的产品截图区域
+  /// Data construction (including derivation of key values):
+  ///   primary positioning = "Command Center" + "coding agents" = 2 concrete product concepts
+  ///   primary actions     = latest DMG download + story anchor = 2 user-visible paths
+  ///   hero media          = 1 real-demo montage + 1 matching poster inside 1 product shell
+  ///   removed concepts    = placeholder montage + Get Beta + purple optical artwork = 3 legacy signals
   ///
-  /// 执行过程（逐步说明系统如何处理）：
-  ///   1. 服务端渲染 Home → 得到首屏访问者实际收到的 HTML
-  ///   2. 检查四张真实截图路径 → 确认空画布、Live Nodes 与两种 Agent 布局都进入轮播
-  ///   3. 逐一比较路径在 HTML 中的位置 → 确认四张截图按用户指定顺序排列
-  ///   4. 检查四张截图的独立 alt → 确认非视觉用户能够区分四个产品状态
-  ///   5. 检查轮播区域名称 → 确认多张截图被组织成一个可理解的页面区域
-  ///   6. 排除旧概念图路径 → 防止真实截图只被追加、占位内容仍继续展示
+  /// Execution:
+  ///   1. Server-render the English Home route → receive the HTML sent before hydration
+  ///   2. Locate the hero positioning → confirm it names the Command Center and Coding Agents
+  ///   3. Locate both actions → confirm download is primary and the story remains reachable
+  ///   4. Locate the product demonstration → confirm the real overview video and poster exist inside the hero
+  ///   5. Exclude the placeholder montage, legacy Beta, and purple optical signals → confirm the old hero is replaced rather than wrapped
   ///
-  /// 预期结果：
-  ///   - 正断言：空白画布排在首张，且四张真实截图、四条描述性 alt 与轮播区域逐一存在
-  ///   - 负断言：旧的 hero-infinite-canvas.png 不应继续出现在首屏 HTML
-  it("用四张真实产品截图替换首屏概念占位图", () => {
+  /// Expected:
+  ///   - Positive: Command Center copy, latest DMG link, story link, real overview video, and poster all exist
+  ///   - Negative: the placeholder montage, Get Beta, and liquid-glass-hero.png do not exist in the rendered homepage
+  it("renders the agreed split hero as a direct product-and-download experience", () => {
     const html = renderToStaticMarkup(<Home />);
 
-    expect(html, "首屏轮播必须包含展示多个 Live Node 的真实产品截图").toContain(
-      "norma-workspace-live-nodes.webp",
-    );
-    expect(html, "首屏轮播必须包含空白空间画布的真实产品截图").toContain(
-      "norma-workspace-canvas.webp",
-    );
-    expect(html, "首屏轮播必须包含聚焦单个 Agent 的真实产品截图").toContain(
-      "norma-workspace-focused-agent.webp",
-    );
-    expect(html, "首屏轮播必须包含多个 Agent 协作的真实产品截图").toContain(
-      "norma-workspace-agent-collaboration.webp",
+    expect(
+      html,
+      "the hero must identify Norma OS as a Command Center",
+    ).toContain("COMMAND CENTER");
+    expect(
+      html,
+      "the hero must explicitly name the Coding Agents the user directs",
+    ).toContain("coding agents");
+    expect(
+      html,
+      "the primary action must link directly to the stable latest Apple Silicon DMG",
+    ).toContain(
+      'href="https://github.com/multisoul-ai/norma-os-releases/releases/latest/download/Norma-OS_aarch64.dmg"',
     );
     expect(
-      html.indexOf("norma-workspace-canvas.webp"),
-      "空白空间画布必须作为轮播首张，路径应早于 Live Nodes 截图出现",
-    ).toBeLessThan(html.indexOf("norma-workspace-live-nodes.webp"));
+      html,
+      "the secondary action must lead to the product story",
+    ).toContain('href="#how-it-works"');
     expect(
-      html.indexOf("norma-workspace-live-nodes.webp"),
-      "Live Nodes 截图必须排在第二张，路径应早于聚焦 Agent 截图出现",
-    ).toBeLessThan(html.indexOf("norma-workspace-focused-agent.webp"));
+      html,
+      "the hero product shell must contain video media",
+    ).toContain("<video");
     expect(
-      html.indexOf("norma-workspace-focused-agent.webp"),
-      "聚焦 Agent 截图必须排在第三张，路径应早于 Agent 协作截图出现",
-    ).toBeLessThan(html.indexOf("norma-workspace-agent-collaboration.webp"));
-    expect(html, "Live Nodes 截图必须提供可区分产品状态的描述性 alt").toContain(
-      'alt="Norma OS workspace with multiple live Agent, Browser and Terminal nodes"',
-    );
-    expect(html, "空白画布截图必须提供可区分产品状态的描述性 alt").toContain(
-      'alt="Norma OS spatial canvas ready for a new workspace"',
-    );
-    expect(html, "聚焦 Agent 截图必须提供可区分布局的描述性 alt").toContain(
-      'alt="Norma OS workspace with one focused Codex agent and supporting Agent and Terminal nodes"',
-    );
-    expect(html, "Agent 协作截图必须提供可区分运行状态的描述性 alt").toContain(
-      'alt="Norma OS workspace with an active Codex conversation and parallel Agent and Terminal nodes"',
-    );
-    expect(html, "四张截图必须被组织进带名称的产品截图轮播区域").toContain(
-      'aria-label="Norma OS product screenshots"',
-    );
-    expect(html, "旧的概念占位图必须从首屏展示中移除").not.toContain(
-      "hero-infinite-canvas.png",
-    );
+      html,
+      "the hero must use the real product overview montage",
+    ).toContain('src="/media/demo-hero-overview.mp4"');
+    expect(
+      html,
+      "the real product overview must expose a matching poster before playback",
+    ).toContain('poster="/media/demo-hero-overview.webp"');
+    expect(
+      html,
+      "the placeholder hero montage must not remain after real demos are integrated",
+    ).not.toContain("hero-agent-orchestra");
+    expect(
+      html,
+      "the old Beta conversion must not survive the direct-download refactor",
+    ).not.toContain("Get Beta");
+    expect(
+      html,
+      "the old purple optical hero image must not survive the neutral-glass refactor",
+    ).not.toContain("liquid-glass-hero.png");
   });
 
-  /// Liquid Glass 品牌升级：首屏与 Live Nodes 使用经过品牌约束的光学素材，并保持装饰层不干扰无障碍阅读。
+  /// URL localization: the Chinese homepage is complete server-rendered content at /zh-cn rather than a client-storage variant of /.
   ///
-  /// 数据构造（含关键数值的推导过程）：
-  ///   generated assets = liquid-glass-hero.png + liquid-glass-flow.png = 2 张生产素材
-  ///   glass layers     = hero atmosphere + live atmosphere + floating soul fragments = 3 类视觉层
-  ///   readable images  = product screenshots（保留描述性 alt）
-  ///   decorative media = 2 张光学素材 + soul fragments（全部 aria-hidden）
+  /// Data construction (including derivation of key values):
+  ///   localized routes  = / (English) + /zh-cn (Simplified Chinese) = 2 canonical URLs
+  ///   page language     = zh-CN = 1 explicit language boundary
+  ///   shared conversion = latest Apple Silicon DMG = 1 identical product action
+  ///   removed state     = localStorage locale = 0 required client persistence
   ///
-  /// 执行过程（逐步说明系统如何处理）：
-  ///   1. 服务端渲染 Home → 得到页面静态 HTML
-  ///   2. 逐一检查暖白与深色光学素材 → 确认生成物真正接入生产页面
-  ///   3. 检查 Liquid Glass 容器与 soul fragments → 确认材质层有可维护的结构钩子
-  ///   4. 检查装饰媒体语义 → 确认视觉升级不会增加屏幕阅读器噪声
-  ///   5. 排除把素材暴露为内容图片的 alt → 避免用户误以为装饰是产品截图
+  /// Execution:
+  ///   1. Server-render the Chinese route directly → receive Chinese HTML without client hydration
+  ///   2. Inspect its language boundary and hero → confirm assistive technology and visitors receive Chinese immediately
+  ///   3. Inspect both locale links → confirm either canonical URL remains reachable
+  ///   4. Inspect the download link → confirm localization does not fork the product artifact
+  ///   5. Exclude browser-storage localization → confirm URL state is the only language source
   ///
-  /// 预期结果：
-  ///   - 正断言：2 张生成素材、Liquid Glass 容器和 soul fragments 逐一存在
-  ///   - 正断言：2 张生成素材都位于 aria-hidden 的装饰容器中
-  ///   - 负断言：装饰素材不应拥有误导性的描述 alt
-  it("接入品牌化 Liquid Glass 素材且保持装饰层语义安静", () => {
-    const html = renderToStaticMarkup(<Home />);
+  /// Expected:
+  ///   - Positive: zh-CN document and content boundaries, Chinese positioning, both locale URLs, and latest DMG link exist
+  ///   - Negative: localStorage and the old client locale key do not exist in the Chinese HTML
+  it("serves independently authored Chinese content from the zh-cn route", () => {
+    const html = renderToStaticMarkup(
+      <ChineseRootLayout>
+        <ChineseHome />
+      </ChineseRootLayout>,
+    );
 
-    expect(html, "首屏必须接入暖白 Liquid Glass 生成素材").toContain(
-      "liquid-glass-hero.png",
+    expect(
+      html,
+      "the Chinese route must declare zh-CN on the server-rendered document root",
+    ).toContain('<html lang="zh-CN">');
+    expect(
+      html,
+      "the Chinese route must preserve its language at the localized content boundary",
+    ).toContain('<main lang="zh-CN">');
+    expect(
+      html,
+      "the Chinese hero must express the agreed all-agents command-center positioning",
+    ).toContain("在一处，指挥所有 Coding Agent。");
+    expect(
+      html,
+      "the Chinese route must link back to the canonical English homepage",
+    ).toContain('href="/"');
+    expect(
+      html,
+      "the Chinese route must expose its own canonical language URL",
+    ).toContain('href="/zh-cn"');
+    expect(
+      html,
+      "the Chinese primary action must download the same latest Apple Silicon DMG",
+    ).toContain(
+      'href="https://github.com/multisoul-ai/norma-os-releases/releases/latest/download/Norma-OS_aarch64.dmg"',
     );
-    expect(html, "Live Nodes 必须接入深色 Liquid Glass 流带素材").toContain(
-      "liquid-glass-flow.png",
-    );
-    expect(html, "页面必须提供统一的 Liquid Glass 材质容器").toContain(
-      'data-material="liquid-glass"',
-    );
-    expect(html, "首屏必须提供可独立运动的 soul fragments 装饰层").toContain(
-      'class="soul-fragments"',
-    );
-    expect(html, "首屏光学素材必须隐藏于无障碍树").toMatch(
-      /class="hero__optical-material" aria-hidden="true"/,
-    );
-    expect(html, "Live Nodes 光学素材必须隐藏于无障碍树").toMatch(
-      /class="live-section__material" aria-hidden="true"/,
-    );
-    expect(html, "装饰素材不应使用伪装成产品内容的 alt 文本").not.toContain(
-      'alt="Liquid Glass',
-    );
+    expect(
+      html,
+      "URL localization must not require browser localStorage",
+    ).not.toContain("localStorage");
+    expect(
+      html,
+      "the retired client locale persistence key must not leak into the localized route",
+    ).not.toContain("norma-os-locale");
   });
 
-  /// Norma 吉祥物展示：状态语言章节使用正式生成素材介绍 AI Soul，而不是把角色降格为无语义贴纸。
+  /// Homepage narrative: the product story progresses from proof of compatibility to operation, capability, trust, and conversion.
   ///
-  /// 数据构造（含关键数值的推导过程）：
-  ///   mascot asset     = norma-ai-soul.png = 1 张角色生产素材
-  ///   identity copy    = “Norma” + “THE AI SOUL” = 2 个固定识别信息
-  ///   accessibility    = 1 个描述性 alt，向非视觉用户解释角色身份与外观
+  /// Data construction (including derivation of key values):
+  ///   top-level sequence = product + how-it-works + features + trust + FAQ + download = 6 ordered destinations
+  ///   operating story    = voice command + Live Node shortcut + layout command + Agent notification = 4 real-demo chapters
+  ///   real demo media    = 4 chapter MP4 files + 4 matching WebP posters = 8 production assets
+  ///   removed narratives = placeholder chapter media + unsupported restore chapter + standalone AI Soul + generic Beta conversion = 4 retired ideas
   ///
-  /// 执行过程（逐步说明系统如何处理）：
-  ///   1. 服务端渲染 Home → 得到默认英文 HTML
-  ///   2. 检查角色生产素材与固定身份文案 → 确认吉祥物真正进入页面叙事
-  ///   3. 检查描述性 alt → 确认角色不是被错误隐藏的纯装饰
-  ///   4. 排除旧品牌名 → 确认参考图中的旧身份没有进入正式输出
+  /// Execution:
+  ///   1. Server-render the English route → receive one deterministic document
+  ///   2. Resolve every top-level destination by its unique id → confirm all six sections exist
+  ///   3. Compare destination offsets → confirm the page follows the agreed conversion narrative
+  ///   4. Resolve every story title and media path → confirm all four chapters are backed by real product recordings
+  ///   5. Exclude placeholder chapter paths, the unsupported restore chapter, AI Soul, and Beta language → confirm the narrative only claims demonstrated behavior
   ///
-  /// 预期结果：
-  ///   - 正断言：角色素材、Norma 名称、AI Soul 角色和描述性 alt 逐一存在
-  ///   - 负断言：角色区域不得重新引入旧品牌 MultiSoul
-  it("把 Norma 吉祥物作为可理解的 AI Soul 品牌角色呈现", () => {
+  /// Expected:
+  ///   - Positive: all six sections and all four real-demo chapters exist in the agreed order
+  ///   - Negative: placeholder story media, the restore chapter, THE AI SOUL, and Get Beta do not appear in the homepage
+  it("renders the complete agreed homepage narrative in order", () => {
     const html = renderToStaticMarkup(<Home />);
+    const productIndex = html.indexOf('id="product"');
+    const storyIndex = html.indexOf('id="how-it-works"');
+    const featuresIndex = html.indexOf('id="features"');
+    const trustIndex = html.indexOf('id="trust"');
+    const faqIndex = html.indexOf('id="faq"');
+    const downloadIndex = html.indexOf('id="download"');
 
-    expect(html, "状态语言章节必须接入 Norma 吉祥物生产素材").toContain(
-      "norma-ai-soul.png",
-    );
-    expect(html, "吉祥物卡片必须明确显示角色名 Norma").toContain(
-      ">Norma<",
-    );
-    expect(html, "吉祥物卡片必须明确说明 THE AI SOUL 角色定位").toContain(
-      "THE AI SOUL",
-    );
-    expect(html, "吉祥物图片必须提供描述角色固定识别特征的 alt").toContain(
-      'alt="Norma, the AI soul, with lilac hair, a white X hair clip and a composed expression"',
-    );
-    expect(html, "吉祥物区域不得出现旧品牌 MultiSoul").not.toContain("MultiSoul");
-  });
-
-  /// 首页面向首次访问者：默认以英文说清产品定位、核心对象与当前范围。
-  ///
-  /// 数据构造（含关键数值的推导过程）：
-  ///   page markup      = Home 组件渲染出的静态 HTML
-  ///   core promise     = “Make space. Keep it running.” + “Your project, still running.”
-  ///   default locale   = en（用户明确要求默认英文）
-  ///   live node types  = TERMINAL + AGENT + BROWSER + PREVIEW = 4 种核心卡片
-  ///   supported agents = Claude + Codex + Cursor + OpenCode = 4 种运行时
-  ///   negative brand   = MultiSoul（品牌规范明确禁止对外使用）
-  ///
-  /// 执行过程（逐步说明系统如何处理）：
-  ///   1. 服务端渲染 Home → 得到访问者实际收到的 HTML
-  ///   2. 检查英文首屏承诺与产品定义 → 确认首次访问默认呈现英文
-  ///   3. 逐一检查 4 类 Live Node 和 4 个 Agent 运行时 → 确认主要能力没有被泛化
-  ///   4. 检查本地优先、工作区恢复与语音 → 确认差异化能力进入叙事
-  ///   5. 排除旧品牌名与未承诺的移动端主叙事 → 确认范围没有漂移
-  ///
-  /// 预期结果：
-  ///   - 正断言：英文首屏、产品定义、4 类节点、4 个运行时与差异化能力逐一存在
-  ///   - 负断言：默认 HTML 不应出现中文产品标题，也不应出现旧品牌名
-  it("默认以英文完整呈现空间工作台的核心产品叙事", () => {
-    const html = renderToStaticMarkup(<Home />);
-
-    expect(html, "首屏必须出现品牌主标题 Make space. Keep it running.").toContain(
-      "Make space.",
-    );
-    expect(html, "首屏必须出现持续运行的第二行标题").toContain("Keep it running.");
-    expect(html, "页面必须出现品牌承诺 Your project, still running.").toContain(
-      "Your project, still running.",
-    );
-    expect(html, "默认英文产品定义必须说明 Norma OS 是 macOS 空间工作台").toContain(
-      "a spatial workbench for macOS",
-    );
-    expect(html, "Terminal Live Node 必须被明确展示").toContain("TERMINAL");
-    expect(html, "Agent Live Node 必须被明确展示").toContain("AGENT");
-    expect(html, "Browser Live Node 必须被明确展示").toContain("BROWSER");
-    expect(html, "Preview Live Node 必须被明确展示").toContain("PREVIEW");
-    expect(html, "Claude 运行时必须被明确列出").toContain("Claude");
-    expect(html, "Codex 运行时必须被明确列出").toContain("Codex");
-    expect(html, "Cursor 运行时必须被明确列出").toContain("Cursor");
-    expect(html, "OpenCode 运行时必须被明确列出").toContain("OpenCode");
-    expect(html, "官网必须用英文说明本地优先的产品原则").toContain("Local first");
-    expect(html, "官网必须用英文说明可恢复工作区状态").toContain(
-      "Workspace restore",
-    );
-    expect(html, "官网必须用英文说明语音交互能力").toContain("Voice interaction");
-    expect(html, "默认英文 HTML 不应残留中文产品标题").not.toContain("一张会工作的");
-    expect(html, "旧品牌 MultiSoul 不得出现在对外官网").not.toContain("MultiSoul");
-    expect(html, "当前版本不应把移动端控制写成主要能力").not.toContain("移动端控制");
-  });
-
-  /// 单页导航与下载入口：章节锚点保持可达，首屏主按钮直接下载最新的 Norma OS 安装包。
-  ///
-  /// 数据构造（含关键数值的推导过程）：
-  ///   nav targets      = #product + #live-nodes + #voice + #principles = 4 个主要章节
-  ///   download targets = releases/latest + 固定文件名 Norma-OS_aarch64.dmg = 1 个稳定地址
-  ///   legacy target    = #product（旧主按钮只滚动到产品章节，不能下载）
-  ///   invalid action   = apps.apple.com（没有可核验的 Norma OS 商店地址）
-  ///
-  /// 执行过程（逐步说明系统如何处理）：
-  ///   1. 服务端渲染 Home → 得到导航和各 section 的 HTML
-  ///   2. 逐一检查导航 href 与对应 section id → 验证页内可达性
-  ///   3. 定位首屏主按钮 → 检查它指向 GitHub Latest Release 的固定文件名
-  ///   4. 排除旧的 #product 主按钮和未提供的 App Store 地址 → 避免无效下载入口
-  ///
-  /// 预期结果：
-  ///   - 正断言：4 个章节锚点、Beta 锚点与 1 个真实下载入口逐一存在
-  ///   - 负断言：首屏主按钮不再指向 #product，页面不出现无法核验的 App Store 外链
-  it("提供完整且真实的单页导航和行动入口", () => {
-    const html = renderToStaticMarkup(<Home />);
-    const latestDownloadUrl =
-      "https://github.com/multisoul-ai/norma-os-releases/releases/latest/download/Norma-OS_aarch64.dmg";
-
-    expect(html, "产品导航必须指向 #product").toContain('href="#product"');
-    expect(html, "Live Nodes 导航必须指向 #live-nodes").toContain(
-      'href="#live-nodes"',
-    );
-    expect(html, "语音导航必须指向 #voice").toContain('href="#voice"');
-    expect(html, "设计理念导航必须指向 #principles").toContain(
-      'href="#principles"',
-    );
-    expect(html, "产品章节必须提供 id=product 的落点").toContain('id="product"');
-    expect(html, "Live Nodes 章节必须提供 id=live-nodes 的落点").toContain(
-      'id="live-nodes"',
-    );
-    expect(html, "语音章节必须提供 id=voice 的落点").toContain('id="voice"');
-    expect(html, "设计理念章节必须提供 id=principles 的落点").toContain(
-      'id="principles"',
-    );
-    expect(html, "首屏下载 CTA 必须指向 GitHub Latest Release 的稳定地址").toContain(
-      `<a class="button button--primary" href="${latestDownloadUrl}">`,
-    );
-    expect(html, "首屏下载 CTA 不应继续指向只会滚动页面的旧 #product 目标").not.toContain(
-      '<a class="button button--primary" href="#product">',
-    );
-    expect(html, "最终 Beta 区域必须提供对应的锚点落点").toContain('id="get-beta"');
-    expect(html, "没有真实下载地址时不得伪造 App Store 外链").not.toContain(
-      "apps.apple.com",
-    );
+    expect(
+      productIndex,
+      "the compatible-agents product proof must exist",
+    ).toBeGreaterThan(-1);
+    expect(
+      storyIndex,
+      "the four-part real-demo operating story must exist",
+    ).toBeGreaterThan(-1);
+    expect(
+      featuresIndex,
+      "the capability grid must exist",
+    ).toBeGreaterThan(-1);
+    expect(trustIndex, "the trust section must exist").toBeGreaterThan(-1);
+    expect(faqIndex, "the FAQ section must exist").toBeGreaterThan(-1);
+    expect(
+      downloadIndex,
+      "the final direct-download conversion must exist",
+    ).toBeGreaterThan(-1);
+    expect(
+      storyIndex,
+      "the operating story must follow compatible-agent proof",
+    ).toBeGreaterThan(productIndex);
+    expect(
+      featuresIndex,
+      "capabilities must follow the operating story",
+    ).toBeGreaterThan(storyIndex);
+    expect(
+      trustIndex,
+      "trust evidence must follow the capability explanation",
+    ).toBeGreaterThan(featuresIndex);
+    expect(
+      faqIndex,
+      "FAQ must resolve objections after trust evidence",
+    ).toBeGreaterThan(trustIndex);
+    expect(
+      downloadIndex,
+      "the final download must close the narrative after FAQ",
+    ).toBeGreaterThan(faqIndex);
+    expect(
+      html,
+      "chapter one must demonstrate direct voice command of an Agent",
+    ).toContain("Direct an Agent with your voice");
+    expect(
+      html,
+      "chapter two must demonstrate direct keyboard focus for any Live Node",
+    ).toContain("Bring any Live Node forward");
+    expect(
+      html,
+      "chapter three must demonstrate instant workspace reshaping",
+    ).toContain("Reshape the workspace instantly");
+    expect(
+      html,
+      "chapter four must demonstrate actionable Agent attention signals",
+    ).toContain("Know when an Agent needs you");
+    expect(
+      html,
+      "chapter one must load the optimized voice-command recording",
+    ).toContain('src="/media/demo-voice-command.mp4"');
+    expect(
+      html,
+      "chapter one must expose the matching voice-command poster before playback",
+    ).toContain('poster="/media/demo-voice-command.webp"');
+    expect(
+      html,
+      "chapter two must load the optimized shortcut recording",
+    ).toContain('src="/media/demo-live-node-shortcuts.mp4"');
+    expect(
+      html,
+      "chapter two must expose the matching Live Node shortcut poster before playback",
+    ).toContain('poster="/media/demo-live-node-shortcuts.webp"');
+    expect(
+      html,
+      "chapter three must load the optimized layout recording",
+    ).toContain('src="/media/demo-layout-command-m.mp4"');
+    expect(
+      html,
+      "chapter three must expose the matching layout poster before playback",
+    ).toContain('poster="/media/demo-layout-command-m.webp"');
+    expect(
+      html,
+      "chapter four must load the optimized Agent notification recording",
+    ).toContain('src="/media/demo-agent-notifications.mp4"');
+    expect(
+      html,
+      "chapter four must expose the matching Agent notification poster before playback",
+    ).toContain('poster="/media/demo-agent-notifications.webp"');
+    expect(
+      html,
+      "the unsupported restore chapter must not remain without a corresponding real demo",
+    ).not.toContain("Leave. Return. Continue.");
+    expect(
+      html,
+      "the old spatial-canvas placeholder must not remain after real demos are integrated",
+    ).not.toContain("story-one-canvas");
+    expect(
+      html,
+      "the old live-work placeholder must not remain after real demos are integrated",
+    ).not.toContain("story-work-alive");
+    expect(
+      html,
+      "the old Norma-steering placeholder must not remain after real demos are integrated",
+    ).not.toContain("story-steer-norma");
+    expect(
+      html,
+      "the old restore-space placeholder must not remain after real demos are integrated",
+    ).not.toContain("story-restore-space");
+    expect(
+      html,
+      "Norma must not be separated into the retired AI Soul narrative",
+    ).not.toContain("THE AI SOUL");
+    expect(
+      html,
+      "the final conversion must remain a direct download rather than Beta capture",
+    ).not.toContain("Get Beta");
   });
 });

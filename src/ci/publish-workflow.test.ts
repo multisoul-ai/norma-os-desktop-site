@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const projectRoot = resolve(import.meta.dirname, "../..");
 const workflowPath = resolve(projectRoot, ".github/workflows/publish.yml");
 const packagePath = resolve(projectRoot, "package.json");
+const eslintConfigPath = resolve(projectRoot, "eslint.config.mjs");
 
 describe("GitHub 发布流水线", () => {
   /// CI-1：PR 与 main 推送必须经过同一套可复现质量门禁，生产发布只能发生在 main 推送之后。
@@ -111,6 +112,33 @@ describe("GitHub 发布流水线", () => {
     );
     expect(deployScript, "部署脚本不得向 --token 传入疑似令牌明文").not.toMatch(
       /--token\s+["']?[A-Za-z0-9_-]{20,}/,
+    );
+  });
+
+  /// CI-3：本地 Vercel production build 生成的输出不得污染源码 lint 门禁。
+  ///
+  /// 数据构造（含关键数值的推导过程）：
+  ///   generated roots = .next + out + build + .vercel = 4 类构建输出
+  ///   source roots    = src + .agents = 2 类需要继续检查的项目源码
+  ///   failure sample  = .vercel/output 内 1 个 Next.js launcher → 产生 2 个 require() lint 错误
+  ///
+  /// 执行过程（逐步说明系统如何处理）：
+  ///   1. 读取 ESLint flat config → 获得真实的 globalIgnores 列表
+  ///   2. 检查 .vercel/** → 确认本地 production deploy 产物不会被当作源码
+  ///   3. 排除 src/** 与 .agents/** → 确认修复没有通过跳过项目源码来制造假绿
+  ///
+  /// 预期结果：
+  ///   - 正断言：.vercel/** 被明确加入全局忽略
+  ///   - 负断言：src/** 与 .agents/** 不得进入全局忽略
+  it("忽略 Vercel 生成物但继续 lint 站点源码和项目 skills", () => {
+    const eslintConfig = readFileSync(eslintConfigPath, "utf8");
+
+    expect(eslintConfig, "ESLint flat config 必须明确忽略本地 Vercel 构建输出").toContain(
+      '".vercel/**"',
+    );
+    expect(eslintConfig, "修复生成物误报时不得跳过 src 源码").not.toContain('"src/**"');
+    expect(eslintConfig, "修复生成物误报时不得跳过项目内 skills").not.toContain(
+      '".agents/**"',
     );
   });
 });

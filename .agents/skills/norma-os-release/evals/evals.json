@@ -1,0 +1,23 @@
+{
+  "skill_name": "norma-os-release",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "发布 Norma OS 0.1.36。安装包在 ../norma-ai-os/build/Norma OS_0.1.36_aarch64.dmg，请公证、上传 GitHub Release、更新官网下载按钮并部署。",
+      "expected_output": "Resolves the inputs, verifies signing, notarizes and staples before hashing, publishes stable-named DMG and checksum assets, updates the website test-first, deploys, and reports verifiable links and checks.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "重新发布 0.1.36，但 GitHub Release already exists，而且本地 DMG 可能重新打过包。帮我安全处理。",
+      "expected_output": "Inspects the existing release and compares local/remote size and digest, refuses silent replacement on mismatch, and requests explicit direction before any destructive overwrite.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "0.1.37 的 Release 已上传，官网测试和 build 都通过，但 Actions 报 VERCEL_TOKEN invalid。继续把生产发布做完。",
+      "expected_output": "Separates artifact success from deployment failure, checks a non-secret local Vercel login, deploys the verified commit when authorized, handles secret rotation safely, reruns CI, and verifies the live CTA.",
+      "files": []
+    }
+  ]
+}

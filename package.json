@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "deploy:production": "vercel pull --yes --environment=production --token \"$VERCEL_TOKEN\" && vercel build --prod --token \"$VERCEL_TOKEN\" && vercel deploy --prebuilt --prod --token \"$VERCEL_TOKEN\"",
+    "demo:media": "bash scripts/process-demo-media.sh",
+    "deploy:production": "pnpm exec vercel pull --yes --environment=production --token \"$VERCEL_TOKEN\" && pnpm exec vercel build --prod --token \"$VERCEL_TOKEN\" && pnpm exec vercel deploy --prebuilt --prod --token \"$VERCEL_TOKEN\"",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run"
@@ -16,8 +17,8 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
-    "@testing-library/react": "^16.3.0",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -26,6 +27,7 @@
     "jsdom": "^27.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vercel": "58.0.0",
     "vitest": "^4.1.7"
   }
 }

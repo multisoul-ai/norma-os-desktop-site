@@ -44,10 +44,6 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Install Vercel CLI
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npm install --global vercel
-
       - name: Deploy production
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
