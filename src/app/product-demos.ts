@@ -1,10 +1,14 @@
 import type {
+  HeroSlide,
   SiteLocale,
-  StageContent,
   StoryStep,
 } from "./site-content";
 
 type DemoCopy = {
+  audio?: {
+    muteLabel: string;
+    unmuteLabel: string;
+  };
   body: string;
   label: string;
   title: string;
@@ -19,12 +23,14 @@ type DemoMedia = {
 
 type ProductDemo = DemoMedia & {
   copy: Record<SiteLocale, DemoCopy>;
-  hasAudio?: boolean;
   id: string;
 };
 
 type HeroOverview = DemoMedia & {
-  copy: Record<SiteLocale, Pick<DemoCopy, "label" | "videoLabel">>;
+  copy: Record<
+    SiteLocale,
+    Pick<DemoCopy, "label" | "title" | "videoLabel">
+  >;
 };
 
 const heroOverview: HeroOverview = {
@@ -34,12 +40,14 @@ const heroOverview: HeroOverview = {
     en: {
       label:
         "Real Norma OS overview with Live Node shortcuts, workspace layouts, and Agent notifications",
+      title: "Command Center overview",
       videoLabel:
         "Real Norma OS demo showing Live Node shortcuts, workspace layout changes, and Agent notifications",
     },
     "zh-CN": {
       label:
         "展示 Live Node 快捷操作、工作区布局和 Agent 通知的 Norma OS 真实产品总览",
+      title: "指挥中心总览",
       videoLabel:
         "Norma OS 真实演示：一键唤起 Live Node、切换工作区布局并接收 Agent 通知",
     },
@@ -49,26 +57,64 @@ const heroOverview: HeroOverview = {
 export const productDemos: ProductDemo[] = [
   {
     id: "voice-command",
-    hasAudio: true,
     media: "/media/demo-voice-command.mp4",
     mobileMedia: "/media/demo-voice-command-mobile.mp4",
     poster: "/media/demo-voice-command.webp",
     copy: {
       en: {
-        title: "Direct an Agent with your voice",
+        audio: {
+          muteLabel: "Mute voice group control",
+          unmuteLabel: "Hear voice group control",
+        },
+        title: "Voice group control: direct six Agents at once",
         body:
-          "Speak the outcome once. Norma creates six Agent Live Nodes, gives each one a task, and keeps every run visible in the same workspace.",
-        label: "Norma OS creating and directing six Agent Live Nodes with one voice command",
+          "One spoken instruction controls six Agents. Norma creates six Agent Live Nodes, gives each one its own task, and keeps every run visible in the same workspace.",
+        label: "Norma OS voice group control directing six Agent Live Nodes with one spoken instruction",
         videoLabel:
-          "Real Norma OS demo using one voice instruction to create six Agent Live Nodes and assign their tasks",
+          "Real Norma OS voice group control demo using one spoken instruction to create six Agent Live Nodes and assign their tasks",
       },
       "zh-CN": {
-        title: "开口，直接指挥 Agent",
+        audio: {
+          muteLabel: "关闭语音群控声音",
+          unmuteLabel: "播放语音群控声音",
+        },
+        title: "语音群控：一句话指挥六个 Agent",
         body:
-          "说出目标，Norma 会创建六个 Agent Live Node，并为每个 Agent 分配任务。无需逐个输入，也能在同一工作区看见所有执行状态。",
-        label: "使用一条语音指令创建并指挥六个 Agent Live Node 的 Norma OS",
+          "这就是语音群控：说一次，六个 Agent 同时行动。Norma 会创建六个 Agent Live Node、分别下发任务，并在同一工作区展示所有执行状态。",
+        label: "使用一条语音指令群控六个 Agent Live Node 的 Norma OS",
         videoLabel:
-          "Norma OS 真实演示：通过一条语音指令创建六个 Agent Live Node 并分配任务",
+          "Norma OS 语音群控真实演示：通过一条语音指令创建六个 Agent Live Node 并分别分配任务",
+      },
+    },
+  },
+  {
+    id: "agent-collaboration",
+    media: "/media/demo-agent-collaboration.mp4",
+    poster: "/media/demo-agent-collaboration.webp",
+    copy: {
+      en: {
+        audio: {
+          muteLabel: "Mute Agent collaboration",
+          unmuteLabel: "Hear Agent collaboration",
+        },
+        title: "Agents delegate tasks to each other",
+        body:
+          "One Agent can hand a focused task to another Agent and receive the result inside the same workspace. Work branches without making you relay every instruction yourself.",
+        label: "Norma OS showing one Agent delegating a task to another Agent",
+        videoLabel:
+          "Real Norma OS demo showing an Agent assign a task to another Agent and receive the completed result",
+      },
+      "zh-CN": {
+        audio: {
+          muteLabel: "关闭 Agent 协作演示声音",
+          unmuteLabel: "播放 Agent 协作演示声音",
+        },
+        title: "Agent 之间，可以互相派发任务",
+        body:
+          "一个 Agent 可以把明确的子任务交给另一个 Agent，并在同一工作区接收执行结果。工作能够自行分支，不再需要你充当每一次协作的传话人。",
+        label: "展示一个 Agent 向另一个 Agent 派发任务的 Norma OS",
+        videoLabel:
+          "Norma OS 真实演示：一个 Agent 向另一个 Agent 派发任务并接收完成结果",
       },
     },
   },
@@ -143,15 +189,38 @@ export const productDemos: ProductDemo[] = [
   },
 ];
 
-export function getHeroDemo(locale: SiteLocale): StageContent {
-  const copy = heroOverview.copy[locale];
+export function getHeroDemos(locale: SiteLocale): HeroSlide[] {
+  const featuredDemos = productDemos.slice(0, 2);
+  const overviewCopy = heroOverview.copy[locale];
 
-  return {
-    label: copy.label,
-    media: heroOverview.media,
-    poster: heroOverview.poster,
-    videoLabel: copy.videoLabel,
-  };
+  return [
+    ...featuredDemos.map((demo) => {
+      const copy = demo.copy[locale];
+
+      return {
+        id: demo.id,
+        stage: {
+          audio: copy.audio,
+          label: copy.label,
+          media: demo.media,
+          mobileMedia: demo.mobileMedia,
+          poster: demo.poster,
+          videoLabel: copy.videoLabel,
+        },
+        title: copy.title,
+      };
+    }),
+    {
+      id: "command-center-overview",
+      stage: {
+        label: overviewCopy.label,
+        media: heroOverview.media,
+        poster: heroOverview.poster,
+        videoLabel: overviewCopy.videoLabel,
+      },
+      title: overviewCopy.title,
+    },
+  ];
 }
 
 export function getStoryDemos(locale: SiteLocale): StoryStep[] {
@@ -162,7 +231,7 @@ export function getStoryDemos(locale: SiteLocale): StoryStep[] {
       body: copy.body,
       number: String(index + 1).padStart(2, "0"),
       stage: {
-        hasAudio: demo.hasAudio,
+        audio: copy.audio,
         label: copy.label,
         media: demo.media,
         mobileMedia: demo.mobileMedia,

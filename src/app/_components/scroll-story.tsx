@@ -2,15 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { StoryStep } from "../site-content";
-import { AutoplayVideo } from "./autoplay-video";
-import { ProductStage } from "./product-stage";
+import { DemoStage } from "./demo-stage";
 
 type ScrollStoryProps = {
   controls: {
-    mute: string;
     pause: string;
     play: string;
-    unmute: string;
   };
   eyebrow: string;
   heading: string;
@@ -19,43 +16,6 @@ type ScrollStoryProps = {
 };
 
 const storyActivationLineRatio = 0.5;
-
-function StoryStage({
-  active,
-  controls,
-  inline = false,
-  step,
-}: {
-  active: boolean;
-  controls: ScrollStoryProps["controls"];
-  inline?: boolean;
-  step: StoryStep;
-}) {
-  return (
-    <ProductStage label={step.stage.label}>
-      <AutoplayVideo
-        active={active}
-        className="product-stage__video"
-        key={active ? "active" : "inactive"}
-        label={step.stage.videoLabel}
-        pauseLabel={controls.pause}
-        playLabel={controls.play}
-        poster={step.stage.poster}
-        sound={
-          step.stage.hasAudio
-            ? {
-                muteLabel: controls.mute,
-                unmuteLabel: controls.unmute,
-              }
-            : undefined
-        }
-        src={
-          inline ? (step.stage.mobileMedia ?? step.stage.media) : step.stage.media
-        }
-      />
-    </ProductStage>
-  );
-}
 
 export function ScrollStory({
   controls,
@@ -175,11 +135,11 @@ export function ScrollStory({
                 </span>
               </button>
               <div className="story-step__mobile-stage">
-                <StoryStage
+                <DemoStage
                   active={activeIndex === index}
                   controls={controls}
-                  inline
-                  step={step}
+                  stage={step.stage}
+                  useMobileMedia
                 />
               </div>
             </article>
@@ -192,11 +152,11 @@ export function ScrollStory({
           data-active-story={activeStep.number}
         >
           <div className="story-stage__sticky">
-            <StoryStage
+            <DemoStage
               active
               controls={controls}
               key={activeStep.number}
-              step={activeStep}
+              stage={activeStep.stage}
             />
             <p className="story-stage__caption">
               <span>{activeStep.number}</span>

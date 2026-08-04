@@ -487,8 +487,113 @@ summary {
   margin-right: calc(var(--stage-overhang) * -1);
 }
 
-.hero__stage .product-stage {
+.hero-carousel {
   width: min(100%, calc((100dvh - 218px) * 1.6));
+  min-width: 0;
+}
+
+.hero__stage .product-stage {
+  width: 100%;
+}
+
+.hero-carousel__rail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 18px 0;
+}
+
+.hero-carousel__rail p {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: #555750;
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.hero-carousel__rail p span {
+  flex: none;
+  color: #90928c;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.08em;
+}
+
+.hero-carousel__rail p strong {
+  overflow: hidden;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-carousel__controls,
+.hero-carousel__slides {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hero-carousel__controls button {
+  display: grid;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(82, 84, 78, 0.13);
+  background: rgba(255, 255, 255, 0.34);
+  color: #73756e;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.hero-carousel__controls button:hover,
+.hero-carousel__controls button:focus-visible,
+.hero-carousel__slides button[data-active="true"] {
+  border-color: rgba(57, 59, 54, 0.26);
+  background: rgba(255, 255, 255, 0.76);
+  color: #30322d;
+}
+
+.hero-carousel__controls button:hover {
+  transform: translateY(-1px);
+}
+
+.hero-carousel__controls button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.hero-carousel__arrow {
+  width: 28px;
+  border-radius: 50%;
+}
+
+.hero-carousel__arrow svg {
+  width: 14px;
+  height: 14px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.hero-carousel__slides button {
+  width: 30px;
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.hero-carousel__slides button[data-active="true"] {
+  width: 38px;
 }
 
 .product-stage {
@@ -795,12 +900,13 @@ summary {
 .story-step__button {
   display: grid;
   width: 100%;
+  box-sizing: border-box;
   grid-template-columns: 48px 1fr;
   gap: 20px;
   border: 0;
   background: transparent;
   color: inherit;
-  padding: 48px 0;
+  padding: 48px 8px 48px 0;
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -835,6 +941,7 @@ summary {
 
 .story-step__copy {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 17px;
 }
@@ -844,11 +951,11 @@ summary {
   font-weight: 650;
   letter-spacing: -0.045em;
   line-height: 1.08;
-  white-space: nowrap;
+  text-wrap: balance;
 }
 
 .story-step__copy > span {
-  max-width: 450px;
+  max-width: 100%;
   color: var(--muted);
   font-size: 14px;
   letter-spacing: -0.02em;
@@ -883,9 +990,11 @@ summary {
 .story-stage__caption {
   width: min(100%, calc((100dvh - 218px) * 1.6));
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   gap: 12px;
-  margin: 16px 18px 0;
+  margin: 16px 0 0;
+  padding: 0 18px;
   color: #60625d;
   font-size: 11px;
   font-weight: 650;
@@ -1375,6 +1484,10 @@ main[lang="zh-CN"] .story-step__copy strong {
   .hero__stage {
     width: 100%;
     margin-right: 0;
+  }
+
+  .hero-carousel {
+    width: 100%;
   }
 
   .hero__stage .product-stage {

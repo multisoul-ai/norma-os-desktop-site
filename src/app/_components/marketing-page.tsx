@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { AutoplayVideo } from "./autoplay-video";
 import { Brand } from "./brand";
+import { HeroCarousel } from "./hero-carousel";
 import { LicenseKey } from "./license-key";
-import { ProductStage } from "./product-stage";
 import type { SiteContent } from "../site-content";
 import {
   betaLicenseKey,
@@ -73,8 +72,6 @@ function Header({ content }: { content: SiteContent }) {
 }
 
 function Hero({ content }: { content: SiteContent }) {
-  const { stage } = content.hero;
-
   return (
     <section
       aria-labelledby="hero-title"
@@ -119,17 +116,14 @@ function Hero({ content }: { content: SiteContent }) {
       </div>
 
       <div className="hero__stage">
-        <ProductStage label={stage.label}>
-          <AutoplayVideo
-            className="product-stage__video"
-            label={stage.videoLabel}
-            pauseLabel={content.mediaControls.pause}
-            playLabel={content.mediaControls.play}
-            poster={stage.poster}
-            preload="metadata"
-            src={stage.media}
-          />
-        </ProductStage>
+        <HeroCarousel
+          carouselLabel={content.hero.carouselLabel}
+          controls={content.mediaControls}
+          nextDemoLabel={content.hero.nextDemoLabel}
+          previousDemoLabel={content.hero.previousDemoLabel}
+          showDemoLabel={content.hero.showDemoLabel}
+          slides={content.hero.slides}
+        />
       </div>
     </section>
   );

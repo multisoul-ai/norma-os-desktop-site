@@ -1,9 +1,12 @@
-import { getHeroDemo, getStoryDemos } from "./product-demos";
+import { getHeroDemos, getStoryDemos } from "./product-demos";
 
 export type SiteLocale = "en" | "zh-CN";
 
 export type StageContent = {
-  hasAudio?: boolean;
+  audio?: {
+    muteLabel: string;
+    unmuteLabel: string;
+  };
   label: string;
   media: string;
   mobileMedia?: string;
@@ -14,6 +17,12 @@ export type StageContent = {
 export type StoryStep = {
   body: string;
   number: string;
+  stage: StageContent;
+  title: string;
+};
+
+export type HeroSlide = {
+  id: string;
   stage: StageContent;
   title: string;
 };
@@ -37,10 +46,8 @@ type FaqItem = {
 export type SiteContent = {
   locale: SiteLocale;
   mediaControls: {
-    mute: string;
     pause: string;
     play: string;
-    unmute: string;
   };
   nav: {
     label: string;
@@ -62,10 +69,14 @@ export type SiteContent = {
     licenseCopiedLabel: string;
     licenseCopyLabel: string;
     licenseLabel: string;
+    carouselLabel: string;
+    nextDemoLabel: string;
+    previousDemoLabel: string;
+    showDemoLabel: string;
     secondaryAction: string;
     platform: string;
     security: string;
-    stage: StageContent;
+    slides: HeroSlide[];
   };
   compatibility: {
     eyebrow: string;
@@ -108,13 +119,22 @@ export type SiteContent = {
   };
 };
 
+const sectionNumbers = {
+  faq: "04",
+  features: "02",
+  story: "01",
+  trust: "03",
+} as const;
+
+function numberedSectionLabel(number: string, label: string) {
+  return `${number} / ${label}`;
+}
+
 export const englishContent: SiteContent = {
   locale: "en",
   mediaControls: {
-    mute: "Mute demonstration sound",
     pause: "Pause demonstration",
     play: "Play demonstration",
-    unmute: "Hear demonstration sound",
   },
   nav: {
     label: "Primary navigation",
@@ -137,10 +157,14 @@ export const englishContent: SiteContent = {
     licenseCopiedLabel: "Copied",
     licenseCopyLabel: "Copy",
     licenseLabel: "Beta license",
+    carouselLabel: "Command Center product demonstrations",
+    nextDemoLabel: "Next demonstration",
+    previousDemoLabel: "Previous demonstration",
+    showDemoLabel: "Show demonstration",
     secondaryAction: "See it in action",
     platform: "Apple Silicon",
     security: "Signed & notarized",
-    stage: getHeroDemo("en"),
+    slides: getHeroDemos("en"),
   },
   compatibility: {
     eyebrow: "BRING YOUR OWN AGENTS",
@@ -148,14 +172,14 @@ export const englishContent: SiteContent = {
     agents: ["Codex", "Claude Code", "Cursor", "OpenCode"],
   },
   story: {
-    eyebrow: "01 / HOW IT WORKS",
-    heading: "Four real interactions. One clear flow.",
+    eyebrow: numberedSectionLabel(sectionNumbers.story, "HOW IT WORKS"),
+    heading: "Five real interactions. One clear flow.",
     introduction:
-      "Every chapter below comes from Norma OS itself: speak, focus, reshape, and respond without leaving the workspace.",
+      "Start with voice group control, then let Agents delegate, focus any Live Node, reshape the workspace, and respond without leaving the command center.",
     steps: getStoryDemos("en"),
   },
   features: {
-    eyebrow: "02 / CAPABILITIES",
+    eyebrow: numberedSectionLabel(sectionNumbers.features, "CAPABILITIES"),
     heading: "Less tab management. More direction.",
     introduction:
       "The parts of a serious coding workflow stay distinct, while the work itself finally feels connected.",
@@ -199,7 +223,7 @@ export const englishContent: SiteContent = {
     ],
   },
   trust: {
-    eyebrow: "03 / BUILT FOR REAL WORK",
+    eyebrow: numberedSectionLabel(sectionNumbers.trust, "BUILT FOR REAL WORK"),
     heading: "Your work stays yours.",
     introduction:
       "Norma OS coordinates the tools on your Mac without turning your development environment into a remote black box.",
@@ -224,7 +248,7 @@ export const englishContent: SiteContent = {
     ],
   },
   faq: {
-    eyebrow: "04 / QUESTIONS",
+    eyebrow: numberedSectionLabel(sectionNumbers.faq, "QUESTIONS"),
     heading: "Before you open the command center.",
     items: [
       {
@@ -271,10 +295,8 @@ export const englishContent: SiteContent = {
 export const chineseContent: SiteContent = {
   locale: "zh-CN",
   mediaControls: {
-    mute: "关闭演示声音",
     pause: "暂停演示",
     play: "播放演示",
-    unmute: "播放演示声音",
   },
   nav: {
     label: "主导航",
@@ -297,10 +319,14 @@ export const chineseContent: SiteContent = {
     licenseCopiedLabel: "已复制",
     licenseCopyLabel: "复制",
     licenseLabel: "内测 License",
+    carouselLabel: "指挥中心产品演示轮播",
+    nextDemoLabel: "下一个演示",
+    previousDemoLabel: "上一个演示",
+    showDemoLabel: "查看演示",
     secondaryAction: "查看实际运行",
     platform: "Apple 芯片",
     security: "已签名并公证",
-    stage: getHeroDemo("zh-CN"),
+    slides: getHeroDemos("zh-CN"),
   },
   compatibility: {
     eyebrow: "带上你正在使用的 AGENT",
@@ -308,14 +334,14 @@ export const chineseContent: SiteContent = {
     agents: ["Codex", "Claude Code", "Cursor", "OpenCode"],
   },
   story: {
-    eyebrow: "01 / 工作方式",
-    heading: "四个真实操作，一套连续工作流。",
+    eyebrow: numberedSectionLabel(sectionNumbers.story, "工作方式"),
+    heading: "五个真实操作，一套连续工作流。",
     introduction:
-      "以下演示直接来自 Norma OS：语音指挥、唤起 Live Node、调整布局、响应 Agent 状态，都不必离开工作区。",
+      "先用一句话群控六个 Agent，再让 Agent 互相派发任务、唤起 Live Node、调整布局并响应状态，全程不必离开指挥中心。",
     steps: getStoryDemos("zh-CN"),
   },
   features: {
-    eyebrow: "02 / 核心能力",
+    eyebrow: numberedSectionLabel(sectionNumbers.features, "核心能力"),
     heading: "少管理标签页，多指挥工作。",
     introduction:
       "严肃开发流程里的每个部分仍然各司其职，但它们终于在同一套工作上下文中连接起来。",
@@ -353,7 +379,7 @@ export const chineseContent: SiteContent = {
     ],
   },
   trust: {
-    eyebrow: "03 / 为真实工作而造",
+    eyebrow: numberedSectionLabel(sectionNumbers.trust, "为真实工作而造"),
     heading: "你的工作，仍然属于你。",
     introduction:
       "Norma OS 协调你 Mac 上已有的工具，不会把开发环境变成远端、不可见的黑盒。",
@@ -377,7 +403,7 @@ export const chineseContent: SiteContent = {
     ],
   },
   faq: {
-    eyebrow: "04 / 常见问题",
+    eyebrow: numberedSectionLabel(sectionNumbers.faq, "常见问题"),
     heading: "打开指挥中心之前。",
     items: [
       {

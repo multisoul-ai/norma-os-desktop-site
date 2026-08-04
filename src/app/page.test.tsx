@@ -62,18 +62,20 @@ describe("Norma OS English homepage", () => {
   /// Data construction (including derivation of key values):
   ///   primary positioning = "Command Center" + "coding agents" = 2 concrete product concepts
   ///   primary actions     = latest DMG download + story anchor = 2 user-visible paths
-  ///   hero media          = 1 real-demo montage + 1 matching poster inside 1 product shell
+  ///   hero carousel       = voice group control(1) + Agent collaboration(1) + real overview(1) = 3 selectable demonstrations
+  ///   initial hero media  = 1 voice video + 1 matching poster inside 1 product shell
   ///   removed concepts    = placeholder montage + Get Beta + purple optical artwork = 3 legacy signals
   ///
   /// Execution:
   ///   1. Server-render the English Home route → receive the HTML sent before hydration
   ///   2. Locate the hero positioning → confirm it names the Command Center and Coding Agents
   ///   3. Locate both actions → confirm download is primary and the story remains reachable
-  ///   4. Locate the product demonstration → confirm the real overview video and poster exist inside the hero
-  ///   5. Exclude the placeholder montage, legacy Beta, and purple optical signals → confirm the old hero is replaced rather than wrapped
+  ///   4. Locate the product demonstration → confirm voice group control is the initial carousel video beside the positioning
+  ///   5. Locate all selectors → confirm Agent collaboration is second and the overview remains third
+  ///   6. Exclude the placeholder montage, legacy Beta, and purple optical signals → confirm the old hero is replaced rather than wrapped
   ///
   /// Expected:
-  ///   - Positive: Command Center copy, latest DMG link, story link, real overview video, and poster all exist
+  ///   - Positive: Command Center copy, latest DMG link, story link, voice video, and all three carousel choices exist
   ///   - Negative: the placeholder montage, Get Beta, and liquid-glass-hero.png do not exist in the rendered homepage
   it("renders the agreed split hero as a direct product-and-download experience", () => {
     const html = renderToStaticMarkup(<Home />);
@@ -102,12 +104,28 @@ describe("Norma OS English homepage", () => {
     ).toContain("<video");
     expect(
       html,
-      "the hero must use the real product overview montage",
-    ).toContain('src="/media/demo-hero-overview.mp4"');
+      "the hero carousel must lead with the edited voice group-control recording",
+    ).toContain('src="/media/demo-voice-command.mp4"');
     expect(
       html,
-      "the real product overview must expose a matching poster before playback",
-    ).toContain('poster="/media/demo-hero-overview.webp"');
+      "the initial voice group-control slide must expose its matching poster before playback",
+    ).toContain('poster="/media/demo-voice-command.webp"');
+    expect(
+      html,
+      "the hero carousel must expose a selector for the initial voice group-control demonstration",
+    ).toContain("Show demonstration: Voice group control");
+    expect(
+      html,
+      "Agent collaboration must be the second carousel demonstration after voice group control",
+    ).toContain("Show demonstration: Agents delegate tasks to each other");
+    expect(
+      html,
+      "the existing Command Center overview must remain available as the third carousel demonstration",
+    ).toContain("Show demonstration: Command Center overview");
+    expect(
+      html,
+      "the inactive overview video must not be mounted behind the initial voice demonstration",
+    ).not.toContain('src="/media/demo-hero-overview.mp4"');
     expect(
       html,
       "the placeholder hero montage must not remain after real demos are integrated",
@@ -128,18 +146,20 @@ describe("Norma OS English homepage", () => {
   ///   localized routes  = / (English) + /zh-cn (Simplified Chinese) = 2 canonical URLs
   ///   page language     = zh-CN = 1 explicit language boundary
   ///   shared conversion = latest Apple Silicon DMG = 1 identical product action
+  ///   voice positioning = 语音群控 + 六个 Agent = 2 explicit proof points
   ///   removed state     = localStorage locale = 0 required client persistence
   ///
   /// Execution:
   ///   1. Server-render the Chinese route directly → receive Chinese HTML without client hydration
   ///   2. Inspect its language boundary and hero → confirm assistive technology and visitors receive Chinese immediately
-  ///   3. Inspect both locale links → confirm either canonical URL remains reachable
-  ///   4. Inspect the download link → confirm localization does not fork the product artifact
-  ///   5. Exclude browser-storage localization → confirm URL state is the only language source
+  ///   3. Inspect the first story chapter → confirm Chinese copy explicitly presents voice group control of six Agents
+  ///   4. Inspect both locale links → confirm either canonical URL remains reachable
+  ///   5. Inspect the download link → confirm localization does not fork the product artifact
+  ///   6. Exclude the old single-Agent title and browser-storage localization → confirm the new positioning and URL state are authoritative
   ///
   /// Expected:
-  ///   - Positive: zh-CN document and content boundaries, Chinese positioning, both locale URLs, and latest DMG link exist
-  ///   - Negative: localStorage and the old client locale key do not exist in the Chinese HTML
+  ///   - Positive: zh-CN boundaries, Chinese voice-group positioning, both locale URLs, and latest DMG link exist
+  ///   - Negative: the old single-Agent voice title, localStorage, and the old client locale key do not exist
   it("serves independently authored Chinese content from the zh-cn route", () => {
     const html = renderToStaticMarkup(
       <ChineseRootLayout>
@@ -159,6 +179,14 @@ describe("Norma OS English homepage", () => {
       html,
       "the Chinese hero must express the agreed all-agents command-center positioning",
     ).toContain("在一处，指挥所有 Coding Agent。");
+    expect(
+      html,
+      "the Chinese voice chapter must explicitly name voice group control of six Agents",
+    ).toContain("语音群控：一句话指挥六个 Agent");
+    expect(
+      html,
+      "the previous single-Agent Chinese title must not weaken the voice group-control message",
+    ).not.toContain("开口，直接指挥 Agent");
     expect(
       html,
       "the Chinese route must link back to the canonical English homepage",
@@ -183,24 +211,161 @@ describe("Norma OS English homepage", () => {
     ).not.toContain("norma-os-locale");
   });
 
+  /// Agent-to-Agent delegation sequence: the supplied collaboration recording is chapter 02 inside the existing demo story and never becomes a standalone page module.
+  ///
+  /// Data construction (including derivation of key values):
+  ///   localized pages       = English homepage + Chinese homepage = 2 rendered entry points
+  ///   story chapters        = voice(1) + collaboration(1) + shortcut(1) + layout(1) + notification(1) = 5 demos
+  ///   collaboration index   = public chapter 02 - zero-based offset 1 = data-story-index 1
+  ///   collaboration assets  = MP4(1) + WebP poster(1) + specific audio action(1) = 3 proof artifacts per locale
+  ///   standalone modules    = id="agent-collaboration" occurrences = 0
+  ///
+  /// Execution:
+  ///   1. Server-render both localized homepages → receive the complete English and Chinese narratives
+  ///   2. Isolate each five-step story → compare title offsets for voice, collaboration, and shortcut
+  ///   3. Inspect chapter index 1 → confirm collaboration occupies public position 02
+  ///   4. Resolve the collaboration MP4, poster, and sound action → confirm the chapter uses the supplied real recording
+  ///   5. Inspect the hero selectors → confirm the same voice-then-collaboration order is preserved above the fold
+  ///   6. Exclude the former standalone section id and a sixth story index → confirm there is one shared demo system
+  ///
+  /// Expected:
+  ///   - Positive: both locales place collaboration second, expose its media, and preserve five chapter indices
+  ///   - Negative: no standalone collaboration module or sixth placeholder chapter remains
+  it("places Agent collaboration second inside the existing demo sequence", () => {
+    const englishHtml = renderToStaticMarkup(<Home />);
+    const chineseHtml = renderToStaticMarkup(<ChineseHome />);
+    const storyIndex = englishHtml.indexOf('id="how-it-works"');
+    const featuresIndex = englishHtml.indexOf('id="features"');
+    const storyHtml = englishHtml.slice(storyIndex, featuresIndex);
+    const voiceTitleIndex = storyHtml.indexOf(
+      "Voice group control: direct six Agents at once",
+    );
+    const collaborationTitleIndex = storyHtml.indexOf(
+      "Agents delegate tasks to each other",
+    );
+    const shortcutTitleIndex = storyHtml.indexOf("Bring any Live Node forward");
+
+    expect(
+      englishHtml,
+      "the English story must explicitly state that Agents delegate tasks to each other",
+    ).toContain("Agents delegate tasks to each other");
+    expect(
+      chineseHtml,
+      "the Chinese story must explicitly state that Agents can assign tasks to each other",
+    ).toContain("Agent 之间，可以互相派发任务");
+    expect(
+      englishHtml,
+      "the English chapter must explain that collaboration branches without manual instruction relaying",
+    ).toContain("Work branches without making you relay every instruction yourself.");
+    expect(
+      chineseHtml,
+      "the Chinese chapter must explain that work can branch without the user relaying every message",
+    ).toContain("工作能够自行分支，不再需要你充当每一次协作的传话人。");
+    expect(
+      englishHtml,
+      "the integrated collaboration chapter must load the optimized real delegation recording",
+    ).toContain('src="/media/demo-agent-collaboration.mp4"');
+    expect(
+      englishHtml,
+      "the integrated collaboration chapter must expose a matching poster before playback",
+    ).toContain('poster="/media/demo-agent-collaboration.webp"');
+    expect(
+      chineseHtml,
+      "the Chinese collaboration chapter must load the same optimized delegation recording",
+    ).toContain('src="/media/demo-agent-collaboration.mp4"');
+    expect(
+      chineseHtml,
+      "the Chinese collaboration chapter must expose the same matching poster before playback",
+    ).toContain('poster="/media/demo-agent-collaboration.webp"');
+    expect(
+      englishHtml,
+      "the existing voice demo must preserve its explicit voice-group-control sound action",
+    ).toContain('aria-label="Hear voice group control"');
+    expect(
+      chineseHtml,
+      "the Chinese voice demo must preserve its explicit voice-group-control sound action",
+    ).toContain('aria-label="播放语音群控声音"');
+    expect(
+      englishHtml,
+      "the new collaboration demo must expose its own specific sound action",
+    ).toContain('aria-label="Hear Agent collaboration"');
+    expect(
+      chineseHtml,
+      "the Chinese collaboration demo must expose its own specific sound action",
+    ).toContain('aria-label="播放 Agent 协作演示声音"');
+    expect(
+      englishHtml,
+      "a generic sound action must not replace the explicit English voice-group label",
+    ).not.toContain('aria-label="Hear demonstration sound"');
+    expect(
+      chineseHtml,
+      "a generic sound action must not replace the explicit Chinese voice-group label",
+    ).not.toContain('aria-label="播放演示声音"');
+    expect(
+      voiceTitleIndex,
+      "voice group control must exist before Agent collaboration inside the story",
+    ).toBeGreaterThan(-1);
+    expect(
+      collaborationTitleIndex,
+      "Agent collaboration must follow voice group control inside the same story",
+    ).toBeGreaterThan(voiceTitleIndex);
+    expect(
+      shortcutTitleIndex,
+      "the Live Node shortcut demo must follow Agent collaboration as chapter 03",
+    ).toBeGreaterThan(collaborationTitleIndex);
+    expect(
+      storyHtml,
+      "the collaboration demo must occupy the second zero-based story index",
+    ).toContain('data-story-index="1"');
+    expect(
+      englishHtml,
+      "the English five-demo story must expose the final zero-based chapter index 4",
+    ).toContain('data-story-index="4"');
+    expect(
+      chineseHtml,
+      "the Chinese five-demo story must expose the final zero-based chapter index 4",
+    ).toContain('data-story-index="4"');
+    expect(
+      englishHtml,
+      "the hero carousel must preserve Agent collaboration as demonstration 02",
+    ).toContain("Show demonstration: Agents delegate tasks to each other");
+    expect(
+      englishHtml,
+      "the former standalone Agent collaboration section must be removed",
+    ).not.toContain('id="agent-collaboration"');
+    expect(
+      chineseHtml,
+      "the former standalone Chinese collaboration section must also be removed",
+    ).not.toContain('id="agent-collaboration"');
+    expect(
+      englishHtml,
+      "the five-demo story must not expose a sixth placeholder index",
+    ).not.toContain('data-story-index="5"');
+    expect(
+      chineseHtml,
+      "the Chinese five-demo story must not expose a sixth placeholder index",
+    ).not.toContain('data-story-index="5"');
+  });
+
   /// Homepage narrative: the product story progresses from proof of compatibility to operation, capability, trust, and conversion.
   ///
   /// Data construction (including derivation of key values):
   ///   top-level sequence = product + how-it-works + features + trust + FAQ + download = 6 ordered destinations
-  ///   operating story    = voice command + Live Node shortcut + layout command + Agent notification = 4 real-demo chapters
-  ///   real demo media    = 4 chapter MP4 files + 4 matching WebP posters = 8 production assets
+  ///   operating story    = voice + collaboration + shortcut + layout + notification = 5 real-demo chapters
+  ///   real demo media    = 5 chapter MP4 files + 5 matching WebP posters = 10 production assets
   ///   removed narratives = placeholder chapter media + unsupported restore chapter + standalone AI Soul + generic Beta conversion = 4 retired ideas
   ///
   /// Execution:
   ///   1. Server-render the English route → receive one deterministic document
   ///   2. Resolve every top-level destination by its unique id → confirm all six sections exist
   ///   3. Compare destination offsets → confirm the page follows the agreed conversion narrative
-  ///   4. Resolve every story title and media path → confirm all four chapters are backed by real product recordings
-  ///   5. Exclude placeholder chapter paths, the unsupported restore chapter, AI Soul, and Beta language → confirm the narrative only claims demonstrated behavior
+  ///   4. Resolve the first story copy → confirm it explicitly names voice group control and directing six Agents at once
+  ///   5. Resolve every story media path → confirm all five chapters are backed by real product recordings
+  ///   6. Exclude the old single-Agent title, placeholder chapter paths, the unsupported restore chapter, AI Soul, and Beta language → confirm the narrative only claims demonstrated behavior
   ///
   /// Expected:
-  ///   - Positive: all six sections and all four real-demo chapters exist in the agreed order
-  ///   - Negative: placeholder story media, the restore chapter, THE AI SOUL, and Get Beta do not appear in the homepage
+  ///   - Positive: all six sections and all five real-demo chapters exist in order, with collaboration fixed at chapter 02
+  ///   - Negative: the standalone collaboration module, old single-Agent title, placeholders, and Get Beta do not appear
   it("renders the complete agreed homepage narrative in order", () => {
     const html = renderToStaticMarkup(<Home />);
     const productIndex = html.indexOf('id="product"');
@@ -216,7 +381,7 @@ describe("Norma OS English homepage", () => {
     ).toBeGreaterThan(-1);
     expect(
       storyIndex,
-      "the four-part real-demo operating story must exist",
+      "the five-part real-demo operating story must exist",
     ).toBeGreaterThan(-1);
     expect(
       featuresIndex,
@@ -234,7 +399,7 @@ describe("Norma OS English homepage", () => {
     ).toBeGreaterThan(productIndex);
     expect(
       featuresIndex,
-      "capabilities must follow the operating story",
+      "capabilities must follow the complete five-demo operating story",
     ).toBeGreaterThan(storyIndex);
     expect(
       trustIndex,
@@ -250,19 +415,31 @@ describe("Norma OS English homepage", () => {
     ).toBeGreaterThan(faqIndex);
     expect(
       html,
-      "chapter one must demonstrate direct voice command of an Agent",
-    ).toContain("Direct an Agent with your voice");
+      "chapter one must name voice group control as the primary interaction",
+    ).toContain("Voice group control: direct six Agents at once");
     expect(
       html,
-      "chapter two must demonstrate direct keyboard focus for any Live Node",
+      "the voice chapter must explain that one spoken instruction controls six Agents",
+    ).toContain("One spoken instruction controls six Agents");
+    expect(
+      html,
+      "the old single-Agent voice title must not dilute the group-control positioning",
+    ).not.toContain("Direct an Agent with your voice");
+    expect(
+      html,
+      "chapter two must demonstrate Agent-to-Agent task delegation",
+    ).toContain("Agents delegate tasks to each other");
+    expect(
+      html,
+      "chapter three must demonstrate direct keyboard focus for any Live Node",
     ).toContain("Bring any Live Node forward");
     expect(
       html,
-      "chapter three must demonstrate instant workspace reshaping",
+      "chapter four must demonstrate instant workspace reshaping",
     ).toContain("Reshape the workspace instantly");
     expect(
       html,
-      "chapter four must demonstrate actionable Agent attention signals",
+      "chapter five must demonstrate actionable Agent attention signals",
     ).toContain("Know when an Agent needs you");
     expect(
       html,
@@ -274,28 +451,40 @@ describe("Norma OS English homepage", () => {
     ).toContain('poster="/media/demo-voice-command.webp"');
     expect(
       html,
-      "chapter two must load the optimized shortcut recording",
+      "chapter two must load the optimized Agent collaboration recording",
+    ).toContain('src="/media/demo-agent-collaboration.mp4"');
+    expect(
+      html,
+      "chapter two must expose the matching Agent collaboration poster",
+    ).toContain('poster="/media/demo-agent-collaboration.webp"');
+    expect(
+      html,
+      "chapter three must load the optimized shortcut recording",
     ).toContain('src="/media/demo-live-node-shortcuts.mp4"');
     expect(
       html,
-      "chapter two must expose the matching Live Node shortcut poster before playback",
+      "chapter three must expose the matching Live Node shortcut poster before playback",
     ).toContain('poster="/media/demo-live-node-shortcuts.webp"');
     expect(
       html,
-      "chapter three must load the optimized layout recording",
+      "chapter four must load the optimized layout recording",
     ).toContain('src="/media/demo-layout-command-m.mp4"');
     expect(
       html,
-      "chapter three must expose the matching layout poster before playback",
+      "chapter four must expose the matching layout poster before playback",
     ).toContain('poster="/media/demo-layout-command-m.webp"');
     expect(
       html,
-      "chapter four must load the optimized Agent notification recording",
+      "chapter five must load the optimized Agent notification recording",
     ).toContain('src="/media/demo-agent-notifications.mp4"');
     expect(
       html,
-      "chapter four must expose the matching Agent notification poster before playback",
+      "chapter five must expose the matching Agent notification poster before playback",
     ).toContain('poster="/media/demo-agent-notifications.webp"');
+    expect(
+      html,
+      "Agent collaboration must not survive as a separate section outside the demo story",
+    ).not.toContain('id="agent-collaboration"');
     expect(
       html,
       "the unsupported restore chapter must not remain without a corresponding real demo",

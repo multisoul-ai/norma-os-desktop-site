@@ -6,6 +6,8 @@ type AutoplayVideoProps = {
   active?: boolean;
   className?: string;
   label: string;
+  loop?: boolean;
+  onEnded?: () => void;
   pauseLabel: string;
   playLabel: string;
   poster: string;
@@ -21,6 +23,8 @@ export function AutoplayVideo({
   active = true,
   className,
   label,
+  loop = true,
+  onEnded,
   pauseLabel,
   playLabel,
   poster,
@@ -114,8 +118,9 @@ export function AutoplayVideo({
       <video
         aria-label={label}
         className={className}
-        loop
+        loop={loop}
         muted={isMuted}
+        onEnded={onEnded}
         playsInline
         poster={poster}
         preload={preload}

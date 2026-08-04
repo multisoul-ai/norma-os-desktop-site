@@ -11,6 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { englishContent } from "../site-content";
 import { ScrollStory } from "./scroll-story";
 
+const voiceGroupControlTitle =
+  /Voice group control: direct six Agents at once/;
+
 class NoopIntersectionObserver implements IntersectionObserver {
   readonly root = null;
   readonly rootMargin = "0px";
@@ -70,24 +73,24 @@ afterEach(() => {
 });
 
 describe("Norma OS scroll story", () => {
-  /// Direct chapter control: selecting the final real-demo chapter updates the one desktop product stage while preserving the complete four-step narrative.
+  /// Direct chapter control: selecting the final real-demo chapter updates the one desktop product stage while preserving the complete five-step narrative.
   ///
   /// Data construction (including derivation of key values):
-  ///   story chapters      = voice command + Live Node shortcut + layout command + Agent notification = 4 steps
+  ///   story chapters      = voice + collaboration + shortcut + layout + notification = 5 steps
   ///   initial active step = voice chapter → index 0 and public number 01
-  ///   selected step       = notification chapter → index 3 and public number 04
+  ///   selected step       = notification chapter → index 4 and public number 05
   ///   desktop stages      = 1 sticky stage → exactly one active visual narrative
   ///
   /// Execution:
-  ///   1. Render the English four-step story with inert viewport observation → voice chapter remains 01
-  ///   2. Locate the first and fourth chapter controls → verify only the voice chapter is current
-  ///   3. Select the Agent notification demo → React updates the active index from 0 to 3
-  ///   4. Inspect the sticky stage → verify it now exposes the notification demo and chapter number 04
+  ///   1. Render the English five-step story with inert viewport observation → voice chapter remains 01
+  ///   2. Locate the first and fifth chapter controls → verify only the voice chapter is current
+  ///   3. Select the Agent notification demo → React updates the active index from 0 to 4
+  ///   4. Inspect the sticky stage → verify it now exposes the notification demo and chapter number 05
   ///   5. Reinspect the old chapter and old stage → verify neither remains current
   ///
   /// Expected:
-  ///   - Positive: the fourth control becomes current and the sticky stage exposes the real Agent notification visual
-  ///   - Negative: the first control and voice-command stage no longer remain active
+  ///   - Positive: the fifth control becomes current and the sticky stage exposes the real Agent notification visual
+  ///   - Negative: the first control and voice-group-control stage no longer remain active
   it("switches the single desktop stage to the selected chapter", () => {
     const view = render(
       <ScrollStory
@@ -99,40 +102,40 @@ describe("Norma OS scroll story", () => {
       />,
     );
     const firstControl = screen.getByRole("button", {
-      name: /Direct an Agent with your voice/,
+      name: voiceGroupControlTitle,
     });
-    const fourthControl = screen.getByRole("button", {
+    const fifthControl = screen.getByRole("button", {
       name: /Know when an Agent needs you/,
     });
 
     expect(
       firstControl.getAttribute("aria-current"),
-      "the voice-command chapter must be current before any visitor selection",
+      "the voice-group-control chapter must be current before any visitor selection",
     ).toBe("step");
     expect(
-      fourthControl.getAttribute("aria-current"),
+      fifthControl.getAttribute("aria-current"),
       "the Agent notification chapter must not be current before it is selected",
     ).toBeNull();
 
-    fireEvent.click(fourthControl);
+    fireEvent.click(fifthControl);
 
     const activeStage = view.container.querySelector(
-      '[data-active-story="04"]',
+      '[data-active-story="05"]',
     );
     const desktopProductStages = view.container.querySelectorAll(
       ".story-stage .product-stage",
     );
     expect(
-      fourthControl.getAttribute("aria-current"),
+      fifthControl.getAttribute("aria-current"),
       "selecting the Agent notification chapter must mark its control as the current step",
     ).toBe("step");
     expect(
       firstControl.getAttribute("aria-current"),
-      "selecting chapter four must remove current state from chapter one",
+      "selecting chapter five must remove current state from chapter one",
     ).toBeNull();
     expect(
       activeStage,
-      "the desktop story stage must publish chapter number 04 after selection",
+      "the desktop story stage must publish chapter number 05 after selection",
     ).not.toBeNull();
     expect(
       desktopProductStages.length,
@@ -140,7 +143,7 @@ describe("Norma OS scroll story", () => {
     ).toBe(1);
     expect(
       within(activeStage as HTMLElement).getByRole("group", {
-        name: englishContent.story.steps[3].stage.label,
+        name: englishContent.story.steps[4].stage.label,
       }),
       "the active desktop stage must expose the real Agent notification demonstration",
     ).toBeTruthy();
@@ -148,7 +151,7 @@ describe("Norma OS scroll story", () => {
       within(activeStage as HTMLElement).queryByRole("group", {
         name: englishContent.story.steps[0].stage.label,
       }),
-      "the old voice-command visual must not remain mounted in the single desktop stage",
+      "the old voice-group-control visual must not remain mounted in the single desktop stage",
     ).toBeNull();
   });
 
@@ -158,10 +161,10 @@ describe("Norma OS scroll story", () => {
   ///   desktop voice source = 1,920px × 1,080px = 2,073,600 source pixels
   ///   mobile voice source  = 1,280px ×   720px =   921,600 source pixels
   ///   pixel reduction      = 1 - 921,600 / 2,073,600 ≈ 55.6% fewer decoded pixels
-  ///   story surfaces       = desktop sticky(1) + inline mobile chapters(4) = 5 rendered shells
+  ///   story surfaces       = desktop sticky(1) + inline mobile chapters(5) = 6 rendered shells
   ///
   /// Execution:
-  ///   1. Render the four-step English story → both responsive layouts are present for CSS to select
+  ///   1. Render the five-step English story → both responsive layouts are present for CSS to select
   ///   2. Resolve the single desktop-stage video → inspect the full-resolution voice source
   ///   3. Resolve chapter one's inline mobile video → inspect the mobile-specific source
   ///   4. Compare the two URLs → ensure the hidden desktop asset is not reused by the mobile chapter
@@ -215,11 +218,12 @@ describe("Norma OS scroll story", () => {
   ///   activation line       = 800px × 0.50 = 400px
   ///   premature title top   = 410px > 400px → chapter one remains active
   ///   eligible title top    = 390px ≤ 400px → chapter two becomes active
-  ///   chapter-three top     = 1,030px > 400px → the layout demo may not activate
-  ///   chapter-four top      = 1,670px > 400px → the notification demo may not activate
+  ///   chapter-three top     = 1,030px > 400px → the shortcut demo may not activate
+  ///   chapter-four top      = 1,670px > 400px → the layout demo may not activate
+  ///   chapter-five top      = 2,310px > 400px → the notification demo may not activate
   ///
   /// Execution:
-  ///   1. Render the four-step story and assign deterministic title positions
+  ///   1. Render the five-step story and assign deterministic title positions
   ///   2. Place chapter two at 410px and dispatch scroll → its title has not crossed the 400px line
   ///   3. Inspect both controls → chapter one remains current and chapter two stays inactive
   ///   4. Move chapter two to 390px and dispatch scroll → its title has crossed the line
@@ -244,10 +248,10 @@ describe("Norma OS scroll story", () => {
       />,
     );
     const firstControl = screen.getByRole("button", {
-      name: /Direct an Agent with your voice/,
+      name: voiceGroupControlTitle,
     });
     const secondControl = screen.getByRole("button", {
-      name: /Bring any Live Node forward/,
+      name: /Agents delegate tasks to each other/,
     });
     const firstTitle = view.container.querySelector(
       'strong[data-story-index="0"]',
@@ -260,6 +264,9 @@ describe("Norma OS scroll story", () => {
     );
     const fourthTitle = view.container.querySelector(
       'strong[data-story-index="3"]',
+    );
+    const fifthTitle = view.container.querySelector(
+      'strong[data-story-index="4"]',
     );
 
     expect(
@@ -279,8 +286,12 @@ describe("Norma OS scroll story", () => {
       "chapter four must expose its title anchor for activation-line measurement",
     ).not.toBeNull();
     expect(
-      view.container.querySelector('strong[data-story-index="4"]'),
-      "a fifth placeholder chapter must not remain in the real four-demo sequence",
+      fifthTitle,
+      "chapter five must expose its title anchor for activation-line measurement",
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('strong[data-story-index="5"]'),
+      "a sixth placeholder chapter must not remain in the real five-demo sequence",
     ).toBeNull();
 
     let secondTitleTop = 410;
@@ -295,6 +306,9 @@ describe("Norma OS scroll story", () => {
     );
     vi.spyOn(fourthTitle as HTMLElement, "getBoundingClientRect").mockReturnValue(
       makeTitleRectangle(1670),
+    );
+    vi.spyOn(fifthTitle as HTMLElement, "getBoundingClientRect").mockReturnValue(
+      makeTitleRectangle(2310),
     );
 
     fireEvent.scroll(window);
@@ -328,11 +342,12 @@ describe("Norma OS scroll story", () => {
   ///   activation line       = 800px × 0.50 = 400px
   ///   chapter-one title top = 340px ≤ 400px → chapter one is the latest reached title
   ///   chapter-two title top = 980px > 400px → chapter two has not reached the line
-  ///   chapter-three top     = 1,620px > 400px → the layout demo may not activate
-  ///   chapter-four top      = 2,260px > 400px → the notification demo may not activate
+  ///   chapter-three top     = 1,620px > 400px → the shortcut demo may not activate
+  ///   chapter-four top      = 2,260px > 400px → the layout demo may not activate
+  ///   chapter-five top      = 2,900px > 400px → the notification demo may not activate
   ///
   /// Execution:
-  ///   1. Render the four-step story and select chapter two → create the stale state seen after a long scroll
+  ///   1. Render the five-step story and select collaboration chapter two → create the stale state seen after a long scroll
   ///   2. Place chapter one above the 400px activation line and every later title below it
   ///   3. Dispatch the scroll event emitted by a completed anchor jump
   ///   4. Inspect chapter controls and the desktop stage after position reconciliation
@@ -356,10 +371,10 @@ describe("Norma OS scroll story", () => {
       />,
     );
     const firstControl = screen.getByRole("button", {
-      name: /Direct an Agent with your voice/,
+      name: voiceGroupControlTitle,
     });
     const secondControl = screen.getByRole("button", {
-      name: /Bring any Live Node forward/,
+      name: /Agents delegate tasks to each other/,
     });
     const firstTitle = view.container.querySelector(
       'strong[data-story-index="0"]',
@@ -372,6 +387,9 @@ describe("Norma OS scroll story", () => {
     );
     const fourthTitle = view.container.querySelector(
       'strong[data-story-index="3"]',
+    );
+    const fifthTitle = view.container.querySelector(
+      'strong[data-story-index="4"]',
     );
 
     expect(
@@ -391,8 +409,12 @@ describe("Norma OS scroll story", () => {
       "chapter four must expose its measured title anchor for scroll reconciliation",
     ).not.toBeNull();
     expect(
-      view.container.querySelector('strong[data-story-index="4"]'),
-      "the real-demo story must not expose a fifth placeholder title anchor",
+      fifthTitle,
+      "chapter five must expose its measured title anchor for scroll reconciliation",
+    ).not.toBeNull();
+    expect(
+      view.container.querySelector('strong[data-story-index="5"]'),
+      "the real-demo story must not expose a sixth placeholder title anchor",
     ).toBeNull();
 
     // titleBottom = titleTop + renderedTitleHeight(32px).
@@ -407,6 +429,9 @@ describe("Norma OS scroll story", () => {
     );
     vi.spyOn(fourthTitle as HTMLElement, "getBoundingClientRect").mockReturnValue(
       makeTitleRectangle(2260),
+    );
+    vi.spyOn(fifthTitle as HTMLElement, "getBoundingClientRect").mockReturnValue(
+      makeTitleRectangle(2900),
     );
 
     fireEvent.click(secondControl);
