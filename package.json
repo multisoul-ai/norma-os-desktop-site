@@ -9,7 +9,8 @@
     "deploy:production": "pnpm exec vercel pull --yes --environment=production --token \"$VERCEL_TOKEN\" && pnpm exec vercel build --prod --token \"$VERCEL_TOKEN\" && pnpm exec vercel deploy --prebuilt --prod --token \"$VERCEL_TOKEN\"",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest run"
+    "test": "vitest run",
+    "prototype:homepage": "next dev --port 3100"
   },
   "dependencies": {
     "next": "16.2.6",
