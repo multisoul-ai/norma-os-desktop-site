@@ -8,11 +8,14 @@
 // Keep on codex/norma-homepage-prototype until a direction is chosen.
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import { betaLicenseKey, githubUrl, latestDownloadUrl } from "../../site-constants";
 import { productDemos } from "../../product-demos";
 import type { SiteContent } from "../../site-content";
 import { LicenseKey } from "../license-key";
 import "./prototype.css";
+
+const NormaMascot = dynamic(() => import("./norma-mascot"), { ssr: false });
 
 type Props = { content: SiteContent };
 type Variant = "A" | "B" | "C";
@@ -58,30 +61,6 @@ function Stack({ content }: Props) {
   return <div className="np-stack np-wrap"><p className="np-mono">{choose(content, "YOUR TOOLS. ALL TOGETHER.", "带上你熟悉的工具，一起工作。")}</p><div><span><b className="np-agent-symbol">✳</b> Claude Code</span><span><b className="np-agent-symbol">⌘</b> Codex</span><span><b className="np-agent-symbol">◈</b> Cursor</span><span><b className="np-agent-symbol">▰</b> OpenCode</span><span className="np-stack-terminal"><b className="np-agent-symbol">›_</b> {choose(content, "Your terminal", "你的终端")}</span></div></div>;
 }
 
-function Playground({ content }: Props) {
-  const [reviewed, setReviewed] = useState(false);
-  const [focused, setFocused] = useState(false);
-  return <div className={`np-playground ${focused ? "np-playground-focused" : ""}`} aria-label={choose(content, "Interactive illustration of an agent workspace", "Agent 工作区交互示意")}>
-    <div className="np-sun" aria-hidden="true" /><div className="np-orbit" aria-hidden="true" /><span className="np-spark np-spark-one" aria-hidden="true">✳</span><span className="np-spark np-spark-two" aria-hidden="true">+</span>
-    <div className="np-workspace-label np-mono"><span className="np-status-dot" /> {choose(content, "ONE WORKSPACE. MANY MINDS.", "一个工作区，多位好搭档。")}</div>
-    <article className="np-scene-card np-code-card">
-      <div className="np-window-bar"><span className="np-window-dots"><i /><i /><i /></span><span>website / frontend</span><kbd>⌘ 1</kbd></div>
-      <div className="np-agent-heading"><span className="np-avatar np-avatar-claude">✳</span><div><strong>Claude Code</strong><small>{choose(content, "Making the interface feel right", "让每一个界面细节，都刚刚好")}</small></div><span className="np-badge">{choose(content, "Working", "工作中")}</span></div>
-      <div className="np-code"><div><span>01</span><i>export default</i> function <b>BetterWork</b>() {'{'}</div><div><span>02</span>　return (</div><div><span>03</span>　　&lt;<b>Workspace</b> clarity=<em>"more"</em>&gt;</div><div><span>04</span>　　　&lt;<b>Busywork</b> /&gt; <s> // less of this</s></div><div><span>05</span>　　　&lt;<b>GoodIdeas</b> /&gt;</div><div><span>06</span>　　&lt;/<b>Workspace</b>&gt;</div><div><span>07</span>　)</div><div><span>08</span>{'}'}<span className="np-cursor">▌</span></div></div>
-      <div className="np-card-foot"><span><i className="np-status-dot" /> {choose(content, "Building your next big thing", "正在构建你的下一个作品")}</span><span>+86 <span className="np-red">−24</span></span></div>
-    </article>
-    <article className="np-scene-card np-review-card">
-      <div className="np-review-top"><span className="np-avatar np-avatar-codex">⌘</span><span className="np-mono">CODEX</span><span className="np-complete"><Icon name="check" size={13} />{choose(content, "Done", "已完成")}</span></div>
-      <h3>{choose(content, "Tests? All green.", "测试？全部通过。")}</h3><p>{choose(content, "Ready when you are.", "准备好了，等你看看。")}</p>
-      <div className="np-test-dots" aria-hidden="true">{Array.from({ length: 12 }, (_, i) => <i key={i} />)}</div>
-      <button onClick={() => setReviewed(!reviewed)} aria-pressed={reviewed}>{reviewed ? choose(content, "Reviewed ✓ · Reset", "已查看 ✓ · 重置") : choose(content, "Review changes", "查看变更")}<Icon name="arrow" size={16} /></button>
-    </article>
-    <div className="np-voice-pill"><span className="np-voice-icon"><Icon name="mic" size={19} /></span><p>{choose(content, "“Team, let’s bring this to life.”", "“大家一起，把这个想法做出来。”")}</p><span className="np-wave" aria-hidden="true"><i /><i /><i /><i /><i /></span></div>
-    <button className="np-layout-toggle" aria-pressed={focused} onClick={() => setFocused(!focused)}><span>⊞</span>{focused ? choose(content, "Show everyone", "查看全局") : choose(content, "Find your focus", "聚焦当下")}<kbd>⌘ M</kbd></button>
-    <p className="np-scene-caption np-mono" aria-live="polite">{choose(content, "WORKSPACE ILLUSTRATION · ", "工作区示意 · ")}{focused ? choose(content, "FOCUS", "聚焦") : choose(content, "OVERVIEW", "全局")}{reviewed ? choose(content, " · REVIEWED", " · 已查看变更") : ""}</p>
-  </div>;
-}
-
 function DemoGallery({ content, compact = false }: Props & { compact?: boolean }) {
   const [active, setActive] = useState(0);
   const demo = productDemos[active];
@@ -115,7 +94,7 @@ function Closing({ content }: Props) {
 
 export function VariantA({ content }: Props) {
   return <div className="np np-a" lang={content.locale} id="top"><Header content={content} variant="A" /><main>
-    <section className="np-a-hero np-wrap"><div className="np-a-hero-copy"><p className="np-kicker"><span className="np-tag">MEET NORMA</span><span>YOUR AGENTS. IN GOOD COMPANY.</span></p><h1>{choose(content, "Less", "少一点")}<br />{choose(content, "juggling.", "来回切换。")}<br /><span className="np-highlight">{choose(content, "More building.", "多一点创造。")}</span></h1><p className="np-lede">{choose(content, "A home for your coding agents. Bring Codex, Claude Code, and every live task into one workspace. You set the direction. They work together.", "让 Codex、Claude Code 和每个正在运行的任务，在同一个工作区相遇。你把握方向，Agent 一起推进。")}</p><div className="np-hero-actions"><Download content={content} /><a className="np-watch" href="#in-action"><span><Icon name="play" size={15} /></span>{choose(content, "See it in action", "看看怎么工作")}</a></div><p className="np-platform">{choose(content, "For Apple Silicon Macs", "适用于 Apple 芯片 Mac")}<span>·</span>{choose(content, "Local-first, always.", "本地优先，始终如此。")}</p></div><Playground content={content} /></section>
+    <section className="np-a-hero np-wrap"><div className="np-a-hero-copy"><p className="np-kicker"><span className="np-tag">MEET NORMA</span><span>YOUR AGENTS. IN GOOD COMPANY.</span></p><h1>{choose(content, "Less", "少一点")}<br />{choose(content, "juggling.", "来回切换。")}<br /><span className="np-highlight">{choose(content, "More building.", "多一点创造。")}</span></h1><p className="np-lede">{choose(content, "A home for your coding agents. Bring Codex, Claude Code, and every live task into one workspace. You set the direction. They work together.", "让 Codex、Claude Code 和每个正在运行的任务，在同一个工作区相遇。你把握方向，Agent 一起推进。")}</p><div className="np-hero-actions"><Download content={content} /><a className="np-watch" href="#in-action"><span><Icon name="play" size={15} /></span>{choose(content, "See it in action", "看看怎么工作")}</a></div><p className="np-platform">{choose(content, "For Apple Silicon Macs", "适用于 Apple 芯片 Mac")}<span>·</span>{choose(content, "Local-first, always.", "本地优先，始终如此。")}</p></div><NormaMascot chinese={content.locale === "zh-CN"} /></section>
     <Stack content={content} />
     <section className="np-a-idea" id="how-it-works"><div className="np-wrap np-idea-inner"><div><p className="np-mono">01 / A LITTLE LESS CHAOS</p><h2>{choose(content, "Many agents.", "多个 Agent。")}<br />{choose(content, "One train", "同一个")}<br /><span className="np-underline">{choose(content, "of thought.", "思路。")}</span></h2><p className="np-section-copy">{choose(content, "Great ideas don’t happen in a single tab. Give the whole process a place to live — from the first prompt to the final preview.", "好想法不会只发生在一个标签页里。从第一条指令，到最后一次预览，让整个过程都在眼前。")}</p></div><div className="np-idea-list">{[["01", "One brief. A whole team.", "一句话，调动整个团队。", "Give several agents a direction with one spoken instruction.", "用一条语音指令创建多个 Agent，并分别下发任务。"], ["02", "Keep the work alive.", "切换视线，工作继续。", "Terminals, agents, and previews keep running as your attention moves.", "Agent、终端和预览保持运行，不因你的注意力转移而中断。"], ["03", "Step in at the right moment.", "需要你时，再及时介入。", "See when an agent finishes or needs your attention. Pick up right there.", "直接看到哪个 Agent 完成了工作、哪个需要你，随时接上思路。"]].map(([num, title, zhTitle, body, zhBody]) => <article key={num}><span className="np-mono">{num}</span><div><h3>{choose(content, title, zhTitle)}</h3><p>{choose(content, body, zhBody)}</p></div><Icon name="arrow" /></article>)}</div></div></section>
     <section className="np-a-demo np-wrap" id="in-action"><div className="np-section-head"><div><p className="np-mono">02 / LESS TALK. REAL WORK.</p><h2>{choose(content, "Here’s the whole picture.", "工作全貌，尽在眼前。")}</h2></div><p>{choose(content, "Real agents. Real processes.\nActually running on your Mac.", "真实的 Agent，真实的进程。\n就在你的 Mac 上运行。")}</p></div><DemoGallery content={content} /></section>
