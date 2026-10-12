@@ -16,6 +16,7 @@ import { LicenseKey } from "../license-key";
 import "./prototype.css";
 
 const NormaMascot = dynamic(() => import("./norma-mascot"), { ssr: false });
+const MascotStudio = dynamic(() => import("./norma-mascot").then(module => module.MascotStudio), { ssr: false });
 
 type Props = { content: SiteContent };
 type Variant = "A" | "B" | "C";
@@ -145,5 +146,6 @@ export function HomepagePrototypeHost({ content, children }: Props & { children:
   const search = useSearchParams();
   const variant = search.get("variant") as Variant | null;
   if (process.env.NODE_ENV !== "development" || !variant || !variants.includes(variant)) return children;
+  if (search.get("view") === "mascots") return <MascotStudio chinese={content.locale === "zh-CN"} />;
   return <><div key={`${content.locale}-${variant}`}>{variant === "A" ? <VariantA content={content} /> : variant === "B" ? <VariantB content={content} /> : <VariantC content={content} />}</div><PrototypeSwitcher content={content} variant={variant} /></>;
 }

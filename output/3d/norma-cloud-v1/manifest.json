@@ -1,0 +1,80 @@
+{
+  "status": "complete_local_prototype",
+  "reference": "output/imagegen/norma-minimal-v1/d-cloud.png",
+  "reference_size": [
+    1254,
+    1254
+  ],
+  "body_bbox": [
+    162,
+    315,
+    1113,
+    919
+  ],
+  "reference_body_aspect_ratio": 1.5745033112582782,
+  "feature_bounds": [
+    [
+      457,
+      565,
+      513,
+      681
+    ],
+    [
+      642,
+      588,
+      699,
+      704
+    ],
+    [
+      839,
+      494,
+      909,
+      562
+    ]
+  ],
+  "construction": "Reference silhouette and feature contours measured directly; closed inflated meshes with shared poles and smooth normals. Depth is interpreted from a single image.",
+  "external_services": [],
+  "model_files_present": true,
+  "models": [
+    {
+      "tone": "black",
+      "file": "public/brand/models/norma-cloud-black.glb",
+      "bytes": 1195364,
+      "triangles": 66048,
+      "animations": [
+        "Blink",
+        "Float"
+      ]
+    },
+    {
+      "tone": "white",
+      "file": "public/brand/models/norma-cloud-white.glb",
+      "bytes": 1195364,
+      "triangles": 66048,
+      "animations": [
+        "Blink",
+        "Float"
+      ]
+    }
+  ],
+  "weather_states": [
+    "calm",
+    "rain",
+    "storm"
+  ],
+  "runtime_integrated": true,
+  "previews": [
+    "preview-black.png",
+    "preview-white.png",
+    "preview-rain.png",
+    "preview-storm.png"
+  ],
+  "validation": {
+    "productionBuild": "passed",
+    "typescript": "passed",
+    "geometry": "model-validation.json",
+    "browser": "browser-verification.json"
+  },
+  "weather_delivery": "Interactive weather effects in the website; model files include Float and Blink clips. Thunder audio is synthesized locally and opt-in.",
+  "preview_url": "http://localhost:3100/zh-cn?variant=A&view=mascots&mascot=cloud"
+}

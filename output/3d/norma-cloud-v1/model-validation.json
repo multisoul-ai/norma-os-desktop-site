@@ -1,0 +1,24 @@
+[
+  {
+    "tone": "black",
+    "meshes": 4,
+    "triangles": 66048,
+    "closedMeshes": true,
+    "animations": [
+      "Blink",
+      "Float"
+    ],
+    "bytes": 1195364
+  },
+  {
+    "tone": "white",
+    "meshes": 4,
+    "triangles": 66048,
+    "closedMeshes": true,
+    "animations": [
+      "Blink",
+      "Float"
+    ],
+    "bytes": 1195364
+  }
+]
