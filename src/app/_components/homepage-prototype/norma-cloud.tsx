@@ -1,26 +1,22 @@
 "use client";
 
 // THROWAWAY: the approved cloud, sculpted locally from the measured reference contours.
-import { useEffect, useRef, useState, type RefObject } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-import { makeCloudWeather, type CloudWeather } from "./cloud-weather";
+import { makeCloudWeather } from "./cloud-weather";
+import { cloudActivities, makeCloudActivities, type CloudActivity } from "./cloud-activities";
 import "./norma-cloud.css";
 
-type CloudTone = "black" | "white";
-type CloudController = { greet: () => void; reset: () => void };
-
-function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
-  tone: CloudTone; weather: CloudWeather; paused: boolean; chinese: boolean;
-  controller: RefObject<CloudController | null>; audio: RefObject<AudioContext | null>;
+function CloudViewport({ activity, chinese, onChange }: {
+  activity: CloudActivity; chinese: boolean; onChange: (activity: CloudActivity) => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
-  const live = useRef({ weather, paused });
+  const live = useRef({ activity, onChange });
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
-  useEffect(() => { live.current = { weather, paused }; }, [weather, paused]);
+  useEffect(() => { live.current = { activity, onChange }; }, [activity, onChange]);
 
   useEffect(() => {
     const container = host.current;
@@ -36,7 +32,8 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
     renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
     renderer.domElement.tabIndex = 0;
-    renderer.domElement.setAttribute("aria-label", chinese ? "拖动或按左右方向键旋转云朵" : "Drag or use the arrow keys to rotate the cloud");
+    renderer.domElement.setAttribute("role", "button");
+    renderer.domElement.setAttribute("aria-label", chinese ? "点击云朵或按 Enter、空格切换互动；拖动或按左右键旋转；Home 回正；Esc 暂停或继续" : "Click the cloud or press Enter or Space to change its activity. Drag or use arrow keys to rotate; Home resets; Escape pauses or resumes.");
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-2.3, 2.3, 2.3, -2.3, 0.1, 40);
     camera.position.set(0.15, 0.45, 7);
@@ -62,6 +59,7 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
 
     const cloud = new THREE.Group(); scene.add(cloud);
     const weatherEffect = makeCloudWeather(); scene.add(weatherEffect.root);
+    const activityEffect = makeCloudActivities(); scene.add(activityEffect.root);
     const shadowCanvas = document.createElement("canvas");
     shadowCanvas.width = shadowCanvas.height = 128;
     const ctx = shadowCanvas.getContext("2d")!;
@@ -93,7 +91,7 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
       geometries.forEach(geometry => geometry.dispose());
       materials.forEach(material => material.dispose());
     };
-    new GLTFLoader().load(`/brand/models/norma-cloud-${tone}.glb`, gltf => {
+    new GLTFLoader().load("/brand/models/norma-cloud-black.glb", gltf => {
       if (disposed) { disposeModel(gltf.scene); return; }
       loaded = gltf.scene;
       const bounds = new THREE.Box3().setFromObject(loaded);
@@ -117,16 +115,63 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
     }, undefined, () => { if (!disposed) setStatus("error"); });
 
     let elapsed = 0, last = performance.now(), frame = 0, visible = true, greetStart = -20;
+    let paused = false, nextActivityAt = 8 + Math.random() * 6;
+    let audio: AudioContext | null = null;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    controller.current = { greet() { greetStart = elapsed; }, reset() { orbit.reset(); cloud.rotation.y = 0; } };
+    const activate = () => {
+      if (!loaded) return;
+      const next = cloudActivities[(cloudActivities.indexOf(live.current.activity) + 1) % cloudActivities.length];
+      live.current.onChange(next);
+      paused = false; container.dataset.paused = "false";
+      greetStart = elapsed; nextActivityAt = elapsed + 8 + Math.random() * 6;
+      // Sound is a response to an intentional interaction, never to an automatic state change.
+      if (next === "storm") {
+        try {
+          audio ??= new AudioContext();
+          void audio.resume().then(() => { if (!disposed) thunder(); }).catch(() => {});
+        } catch { /* The visual response works on devices without Web Audio. */ }
+      }
+    };
+    const raycaster = new THREE.Raycaster(), pointer = new THREE.Vector2();
+    const hitsCloud = (x: number, y: number) => {
+      if (!loaded) return false;
+      const bounds = renderer.domElement.getBoundingClientRect();
+      pointer.set((x - bounds.left) / bounds.width * 2 - 1, -(y - bounds.top) / bounds.height * 2 + 1);
+      raycaster.setFromCamera(pointer, camera);
+      return raycaster.intersectObject(cloud, true).length > 0;
+    };
+    let press: { id: number; x: number; y: number; time: number; dragged: boolean } | null = null;
+    const onDown = (event: PointerEvent) => {
+      if (!event.isPrimary || event.button !== 0) { press = null; return; }
+      press = hitsCloud(event.clientX, event.clientY) ? { id: event.pointerId, x: event.clientX, y: event.clientY, time: performance.now(), dragged: false } : null;
+    };
+    const onMove = (event: PointerEvent) => {
+      if (press && event.pointerId === press.id && Math.hypot(event.clientX - press.x, event.clientY - press.y) > 8) press.dragged = true;
+      if (event.pointerType === "mouse") renderer.domElement.style.cursor = press?.dragged ? "grabbing" : hitsCloud(event.clientX, event.clientY) ? "pointer" : "grab";
+    };
+    const onUp = (event: PointerEvent) => {
+      const clicked = press && event.pointerId === press.id && !press.dragged && performance.now() - press.time < 600 && hitsCloud(event.clientX, event.clientY);
+      press = null;
+      if (clicked) activate();
+    };
+    const onCancel = () => { press = null; };
     const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault(); if (!event.repeat) activate();
+      }
       if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
         event.preventDefault(); cloud.rotation.y += event.key === "ArrowLeft" ? -0.16 : 0.16;
       }
+      if (event.key === "Home") { event.preventDefault(); orbit.reset(); cloud.rotation.y = 0; }
+      if (event.key === "Escape") { event.preventDefault(); paused = !paused; container.dataset.paused = String(paused); }
     };
     renderer.domElement.addEventListener("keydown", onKey);
+    renderer.domElement.addEventListener("pointerdown", onDown);
+    renderer.domElement.addEventListener("pointermove", onMove);
+    renderer.domElement.addEventListener("pointerup", onUp);
+    renderer.domElement.addEventListener("pointercancel", onCancel);
     const thunder = () => {
-      const context = audio.current;
+      const context = audio;
       if (!context || context.state !== "running") return;
       const duration = 1.8, buffer = context.createBuffer(1, context.sampleRate * duration, context.sampleRate);
       const samples = buffer.getChannelData(0); let brown = 0;
@@ -134,7 +179,7 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
       const source = context.createBufferSource(), filter = context.createBiquadFilter(), gain = context.createGain();
       source.buffer = buffer; filter.type = "lowpass"; filter.frequency.value = 240;
       gain.gain.setValueAtTime(0, context.currentTime);
-      gain.gain.linearRampToValueAtTime(0.35, context.currentTime + 0.09);
+      gain.gain.linearRampToValueAtTime(0.12, context.currentTime + 0.09);
       gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
       source.connect(filter); filter.connect(gain); gain.connect(context.destination);
       source.onended = () => { source.disconnect(); filter.disconnect(); gain.disconnect(); };
@@ -155,87 +200,78 @@ function CloudViewport({ tone, weather, paused, chinese, controller, audio }: {
       frame = requestAnimationFrame(animate);
       const delta = Math.min((now - last) / 1000, 0.05); last = now;
       if (!visible || document.hidden) return;
-      if (!live.current.paused && !reduced.matches) { elapsed += delta; mixer?.update(delta); }
+      if (!paused && !reduced.matches && loaded) { elapsed += delta; mixer?.update(delta); }
+      if (!paused && !reduced.matches && elapsed >= nextActivityAt) {
+        const choices = cloudActivities.filter(item => item !== live.current.activity);
+        live.current.onChange(choices[Math.floor(Math.random() * choices.length)]);
+        nextActivityAt = elapsed + 8 + Math.random() * 6;
+      }
       const t = reduced.matches ? 0 : elapsed;
-      const greeting = Math.max(0, 1 - (t - greetStart) / 1.5);
+      const greeting = reduced.matches ? 0 : Math.max(0, 1 - (t - greetStart) / 1.5);
       cloud.position.y = 0.20 + Math.sin(t * 1.4) * 0.055 + Math.sin((t - greetStart) * 8) * greeting * 0.075;
       cloud.rotation.z = Math.sin(t * 0.8) * 0.024;
       const breath = 1 + Math.sin(t * 1.4) * 0.008;
       cloud.scale.set(1 / Math.sqrt(breath), breath, 1);
       shadow.scale.setScalar(1 - (cloud.position.y - 0.2) * 0.3);
-      if (weatherEffect.update(t, live.current.weather, !reduced.matches) && !live.current.paused) thunder();
-      orbit.update(); renderer.render(scene, camera);
+      const activity = live.current.activity;
+      weatherEffect.update(t, activity === "rain" || activity === "storm" ? activity : "calm", !reduced.matches);
+      activityEffect.update(t, activity, !reduced.matches);
+      if (!paused) orbit.update();
+      renderer.render(scene, camera);
     };
     frame = requestAnimationFrame(animate);
     return () => {
       disposed = true; cancelAnimationFrame(frame);
       resizeObserver.disconnect(); observer.disconnect(); orbit.dispose();
-      controller.current = null;
       renderer.domElement.removeEventListener("keydown", onKey);
+      renderer.domElement.removeEventListener("pointerdown", onDown);
+      renderer.domElement.removeEventListener("pointermove", onMove);
+      renderer.domElement.removeEventListener("pointerup", onUp);
+      renderer.domElement.removeEventListener("pointercancel", onCancel);
+      void audio?.close();
       if (loaded && mixer) { mixer.stopAllAction(); mixer.uncacheRoot(loaded); }
       if (loaded) disposeModel(loaded);
-      weatherEffect.dispose(); shadowGeometry.dispose(); shadowMaterial.dispose(); shadowTexture.dispose();
+      weatherEffect.dispose(); activityEffect.dispose(); shadowGeometry.dispose(); shadowMaterial.dispose(); shadowTexture.dispose();
       environment.dispose(); renderer.dispose(); renderer.domElement.remove();
     };
-  }, [tone, controller, audio, chinese]);
+  }, [chinese]);
 
   return <div className="nc-viewport" ref={host} data-status={status} aria-label={chinese ? "Norma 云朵 3D 模型，可拖动旋转" : "Norma cloud 3D model, drag to rotate"}>
     {status !== "ready" && <div className="nc-loading" role="status">{status === "loading" ? (chinese ? "小云朵马上就来…" : "A little cloud is on its way…") : (chinese ? "3D 模型暂时无法加载。" : "The 3D model could not be loaded.")}</div>}
   </div>;
 }
 
+const activityCopy: Record<CloudActivity, { word: string; zh: string; en: string }> = {
+  calm: { word: "on cloud nine.", zh: "随时待命", en: "Ready when you are" },
+  voice: { word: "all ears.", zh: "语音群控 · 一句话，一起行动", en: "Voice command · Say it once" },
+  collaboration: { word: "better together.", zh: "Agent 协作 · 分工，接力", en: "Agent collaboration · Work together" },
+  focus: { word: "in the flow.", zh: "工作区聚焦 · 让重要的来到眼前", en: "Workspace focus · Find your flow" },
+  done: { word: "all done.", zh: "任务完成 · 好消息，及时知道", en: "Task complete · Stay in the loop" },
+  rain: { word: "let it rain.", zh: "下点小雨，也陪着你", en: "A little rain. Still here for you." },
+  storm: { word: "a little spark.", zh: "灵感，正在闪现", en: "A little spark of inspiration" },
+};
+
 export default function NormaCloud({ chinese, studio = false }: { chinese: boolean; studio?: boolean }) {
-  const search = useSearchParams(), router = useRouter(), path = usePathname();
-  const tone: CloudTone = search.get("tone") === "white" ? "white" : "black";
-  const value = search.get("weather");
-  const weather: CloudWeather = value === "rain" || value === "storm" ? value : "calm";
-  const [paused, setPaused] = useState(false);
-  const [sound, setSound] = useState(false);
-  const audio = useRef<AudioContext | null>(null);
-  useEffect(() => () => { void audio.current?.close(); }, []);
-  const toggleSound = async () => {
-    if (sound) { await audio.current?.suspend(); setSound(false); }
-    else { audio.current ??= new AudioContext(); await audio.current.resume(); setSound(true); }
-  };
-  const controller = useRef<CloudController | null>(null);
-  const update = (key: string, next: string) => {
-    const params = new URLSearchParams(search.toString());
-    params.delete("mascot"); params.set(key, next);
-    router.replace(`${path}?${params.toString()}`, { scroll: false });
-  };
-  const base = chinese ? "/zh-cn" : "/";
-  return <section className={`nc ${studio ? "nc-studio" : "nc-inline"}`} data-tone={tone} data-weather={weather}>
-    <div className="nc-topline"><span>NORMA / LITTLE CLOUD</span><span className="nc-live-dot" />{chinese ? "陪你，晴天或雨天" : "Here, rain or shine"}</div>
+  const [activity, setActivity] = useState<CloudActivity>("calm");
+  const copy = activityCopy[activity];
+  return <section className={`nc ${studio ? "nc-studio" : "nc-inline"}`} data-tone="black" data-activity={activity} data-weather={activity === "rain" || activity === "storm" ? activity : "calm"}>
+    <div className="nc-topline"><span>NORMA / LITTLE CLOUD</span><span className="nc-live-dot" />{chinese ? "陪你，把事情做好" : "A little company. Good work."}</div>
     <div className="nc-stage">
-      <p className="nc-stage-word" aria-hidden="true">{weather === "storm" ? "a little spark." : weather === "rain" ? "let it rain." : "on cloud nine."}</p>
-      <CloudViewport tone={tone} weather={weather} paused={paused} chinese={chinese} controller={controller} audio={audio} />
-      <div className="nc-stage-tools">
-        <button onClick={toggleSound} aria-pressed={sound} aria-label={chinese ? (sound ? "关闭雷声" : "开启雷声") : (sound ? "Mute thunder" : "Enable thunder sound")} title={chinese ? "雷声" : "Thunder sound"}><svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />{sound ? <path d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /> : <path d="m16 9 5 6m0-6-5 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />}</svg></button>
-        <button onClick={() => setPaused(!paused)} aria-pressed={paused} aria-label={chinese ? (paused ? "播放云朵动画" : "暂停云朵动画") : (paused ? "Play cloud animation" : "Pause cloud animation")}>{paused ? "▷" : "Ⅱ"}</button>
-        <button onClick={() => controller.current?.reset()} aria-label={chinese ? "回到正面" : "Reset view"}>↺</button>
-      </div>
+      <p className="nc-stage-word" aria-hidden="true">{copy.word}</p>
+      <CloudViewport activity={activity} chinese={chinese} onChange={setActivity} />
+      <p className="nc-activity-caption" key={activity}>{chinese ? copy.zh : copy.en}</p>
     </div>
-    <div className="nc-controls">
-      <div className="nc-tone-switch" role="group" aria-label={chinese ? "云朵配色" : "Cloud color"}>
-        {(["black", "white"] as const).map(color => <button key={color} aria-pressed={tone === color} onClick={() => update("tone", color)}><i data-swatch={color} />{chinese ? (color === "black" ? "墨黑" : "奶白") : (color === "black" ? "Ink" : "Milk")}</button>)}
-      </div>
-      <div className="nc-weather-switch" role="group" aria-label={chinese ? "天气效果" : "Weather effects"}>
-        {(["calm", "rain", "storm"] as const).map(mode => <button key={mode} aria-pressed={weather === mode} onClick={() => update("weather", mode)}><span aria-hidden="true">{mode === "calm" ? "☁" : mode === "rain" ? "☂" : "ϟ"}</span>{chinese ? ({ calm: "悠闲", rain: "下雨", storm: "雷雨" }[mode]) : ({ calm: "Calm", rain: "Rain", storm: "Thunder" }[mode])}</button>)}
-      </div>
-    </div>
-    <div className="nc-bottomline"><span>{chinese ? "拖动转一转，换个天气。" : "Give it a spin. Change the weather."}</span>{!studio && <a href={`${base}?variant=A&view=mascots&tone=${tone}&weather=${weather}`}>{chinese ? "仔细看看" : "Meet the cloud"} ↗</a>}</div>
+    <div className="nc-bottomline"><span>{chinese ? "点点云朵，看看它在忙什么。" : "Tap the cloud. See what it’s up to."}</span><span>{chinese ? "也可以拖动转一转 ↗" : "Or give it a spin ↗"}</span></div>
   </section>;
 }
 
 export function CloudStudio({ chinese }: { chinese: boolean }) {
-  const search = useSearchParams(), base = chinese ? "/zh-cn" : "/";
-  const params = new URLSearchParams(search.toString());
-  params.delete("view"); params.delete("mascot"); params.set("variant", "A");
+  const base = chinese ? "/zh-cn" : "/";
   return <main className="np nc-page">
-    <header className="nc-page-header"><a href={`${base}?variant=A`}><img src="/brand/app-icon.png" width="30" height="30" alt="" />norma<span>Little cloud</span></a><a href={`${base}?${params.toString()}`}>{chinese ? "返回原型首页" : "Back to the homepage prototype"} ↗</a></header>
-    <div className="nc-page-intro"><p>A LITTLE CLOUD. A LITTLE COMPANY.</p><h1>{chinese ? "今天，也有好心情。" : "A little lighter, every day."}</h1><span>{chinese ? "一朵小云，两种颜色。晴天、雨天，都陪着你。" : "One little cloud. Two colors. Here for you, rain or shine."}</span></div>
+    <header className="nc-page-header"><a href={`${base}?variant=A`}><img src="/brand/app-icon.png" width="30" height="30" alt="" />norma<span>Little cloud</span></a><a href={`${base}?variant=A`}>{chinese ? "返回原型首页" : "Back to the homepage prototype"} ↗</a></header>
+    <div className="nc-page-intro"><p>A LITTLE CLOUD. A LITTLE COMPANY.</p><h1>{chinese ? "今天，一起做好一点。" : "A little better, together."}</h1><span>{chinese ? "听你说，陪你做。点点小云朵，发现它的每一面。" : "Listening, working, celebrating. Tap the little cloud to meet every side of it."}</span></div>
     <NormaCloud chinese={chinese} studio />
-    <div className="nc-downloads"><a href="/brand/models/norma-cloud-black.glb" download>{chinese ? "下载墨黑模型" : "Download ink model"} ↓</a><span>·</span><a href="/brand/models/norma-cloud-white.glb" download>{chinese ? "下载奶白模型" : "Download milk model"} ↓</a><small>GLB · {chinese ? "含漂浮与眨眼动画" : "Float + blink animations"}</small></div>
-    <footer className="nc-page-footer"><span>NORMA OS · CLOUD STUDY</span><span>{chinese ? "墨黑 / 奶白 · 悠闲 / 下雨 / 雷雨" : "INK / MILK · CALM / RAIN / THUNDER"}</span></footer>
+    <div className="nc-downloads"><a href="/brand/models/norma-cloud-black.glb" download>{chinese ? "下载墨黑模型" : "Download ink model"} ↓</a><small>GLB · {chinese ? "含漂浮与眨眼动画" : "Float + blink animations"}</small></div>
+    <footer className="nc-page-footer"><span>NORMA OS · LITTLE CLOUD</span><span>{chinese ? "倾听 / 协作 / 专注 / 完成" : "LISTEN / COLLABORATE / FOCUS / CELEBRATE"}</span></footer>
   </main>;
 }
