@@ -4,7 +4,7 @@ import "../globals.css";
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f4f3ef",
+  themeColor: "#fcfcf9",
 };
 
 export default function ChineseRootLayout({

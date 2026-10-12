@@ -1,5 +1,5 @@
 // Local, reference-derived 3D sculpt. No generation service, tokens, or external assets.
-// Run: pnpm prototype:cloud-model. Uses the image decoder already installed with Next.js.
+// Run: pnpm build:cloud-model. Uses the image decoder already installed with Next.js.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createRequire } from 'node:module';

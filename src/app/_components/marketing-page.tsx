@@ -1,222 +1,185 @@
-import Link from "next/link";
-import { Brand } from "./brand";
-import { HeroCarousel } from "./hero-carousel";
-import { LicenseKey } from "./license-key";
-import type { SiteContent } from "../site-content";
+import Image from "next/image";
 import {
   betaLicenseKey,
   githubUrl,
   latestDownloadUrl,
 } from "../site-constants";
-import { MobileNavigation } from "./mobile-navigation";
-import { ScrollStory } from "./scroll-story";
+import type { SiteContent } from "../site-content";
+import { LicenseKey } from "./license-key";
+import { DemoGallery } from "./demo-gallery";
+import NormaCloud from "./norma-cloud/norma-cloud";
 
-function ArrowIcon() {
+type Props = { content: SiteContent };
+const choose = (content: SiteContent, en: string, zh: string) =>
+  content.locale === "en" ? en : zh;
+
+function Icon({
+  name,
+  size = 20,
+}: {
+  name: "arrow" | "apple" | "play" | "mic" | "plus" | "check";
+  size?: number;
+}) {
   return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 20 20">
-      <path d="M3.5 10h12M11.5 6l4 4-4 4" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      {name === "arrow" && (
+        <path
+          d="M5 12h14m-5-5 5 5-5 5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
+      {name === "apple" && (
+        <path
+          d="M15.6 5.3c.8-1 1.3-2.2 1.2-3.3-1.2.1-2.5.8-3.2 1.6-.8.9-1.4 2.1-1.2 3.2 1.2.1 2.4-.5 3.2-1.5ZM19.6 13.4c0-2.7 2.2-4 2.3-4.1-1.3-1.9-3.3-2.2-4-2.2-1.7-.2-3.3 1-4.2 1-.9 0-2.2-1-3.6-.9-1.9 0-3.6 1.1-4.6 2.7-2 3.3-.5 8.3 1.4 11 .9 1.3 2 2.7 3.4 2.6 1.4 0 1.9-.9 3.6-.9s2.2.9 3.6.9c1.5 0 2.4-1.3 3.3-2.6 1-1.4 1.5-2.8 1.5-2.9-.1 0-2.7-1-2.7-4.6Z"
+          fill="currentColor"
+          transform="translate(-2 -1) scale(.95)"
+        />
+      )}
+      {name === "play" && <path d="m9 5 11 7-11 7V5Z" fill="currentColor" />}
+      {name === "mic" && (
+        <>
+          <rect
+            x="9"
+            y="3"
+            width="6"
+            height="12"
+            rx="3"
+            stroke="currentColor"
+            strokeWidth="1.6"
+          />
+          <path
+            d="M6 11a6 6 0 0 0 12 0m-6 6v4m-3 0h6"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+          />
+        </>
+      )}
+      {name === "plus" && (
+        <path d="M5 12h14M12 5v14" stroke="currentColor" strokeWidth="1.6" />
+      )}
+      {name === "check" && (
+        <path
+          d="m5 12 4 4L19 6"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      )}
     </svg>
   );
 }
 
-function GitHubIcon() {
+function Logo() {
   return (
-    <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
-      <path d="M15 21v-3.8c.04-1-.36-1.96-1.1-2.64 3.6-.4 7.38-1.77 7.38-8A6.24 6.24 0 0 0 19.62 2c.16-.45.7-2.08-.16-4.1 0 0-1.34-.43-4.4 1.64a15.2 15.2 0 0 0-8 0C4-2.53 2.66-2.1 2.66-2.1 1.8-.08 2.34 1.55 2.5 2A6.24 6.24 0 0 0 .84 6.56c0 6.22 3.78 7.6 7.38 8A3.7 3.7 0 0 0 7.1 17.4V21" />
-      <path d="M7.1 18.2c-3.1.95-3.1-1.55-4.34-1.86" />
-    </svg>
+    <span className="site-logo">
+      <Image src="/brand/app-icon.png" alt="" width={34} height={34} />
+      <span>
+        norma<span className="site-logo-os"> OS</span>
+        <span className="site-logo-dot">.</span>
+      </span>
+    </span>
   );
 }
 
-function Header({ content }: { content: SiteContent }) {
-  const isEnglish = content.locale === "en";
-
+function Download({ content, compact = false }: Props & { compact?: boolean }) {
   return (
-    <header className="site-header" data-material="liquid-glass">
-      <a className="site-header__brand" href="#top">
-        <Brand />
+    <a
+      href={latestDownloadUrl}
+      className={`site-button${compact ? " site-button-small" : ""}`}
+    >
+      <Icon name="apple" size={compact ? 15 : 18} />
+      {choose(content, "Download for Mac", "下载 Mac 版")}
+      <span className="site-button-arrow">
+        <Icon name="arrow" size={17} />
+      </span>
+    </a>
+  );
+}
+
+function Header({ content }: Props) {
+  return (
+    <header className="site-nav site-wrap">
+      <a href="#top" aria-label="Norma OS">
+        <Logo />
       </a>
-      <nav className="desktop-nav" aria-label={content.nav.label}>
-        <a href="#product">{content.nav.product}</a>
-        <a href="#how-it-works">{content.nav.story}</a>
-        <a href="#features">{content.nav.features}</a>
+      <nav aria-label={content.nav.label}>
+        <a href="#how-it-works">{choose(content, "The idea", "工作方式")}</a>
+        <a href="#in-action">{choose(content, "In action", "产品演示")}</a>
+        <a href={githubUrl} target="_blank" rel="noreferrer">
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
       </nav>
-      <div className="header-actions">
-        <div className="locale-links" aria-label="Language">
-          <Link aria-current={isEnglish ? "page" : undefined} href="/" lang="en">
-            EN
-          </Link>
-          <Link
-            aria-current={isEnglish ? undefined : "page"}
-            href="/zh-cn"
-            lang="zh-CN"
-          >
-            中文
-          </Link>
-        </div>
+      <div className="site-nav-actions">
         <a
-          aria-label={content.nav.githubLabel}
-          className="github-link"
-          href={githubUrl}
+          className="site-locale"
+          href={content.locale === "en" ? "/zh-cn" : "/"}
+          hrefLang={content.locale === "en" ? "zh-CN" : "en"}
+          lang={content.locale === "en" ? "zh-CN" : "en"}
         >
-          <GitHubIcon />
+          {choose(content, "中文", "EN")}
         </a>
-        <a className="glass-button glass-button--header" href={latestDownloadUrl}>
-          {content.nav.download}
-          <ArrowIcon />
-        </a>
+        <Download content={content} compact />
       </div>
-      <MobileNavigation isEnglish={isEnglish} nav={content.nav} />
     </header>
   );
 }
 
-function Hero({ content }: { content: SiteContent }) {
+function Stack({ content }: Props) {
   return (
-    <section
-      aria-labelledby="hero-title"
-      className="hero hero--split"
-      id="top"
-    >
-      <div className="hero__copy">
-        <p className="eyebrow">
-          <span aria-hidden="true" />
-          {content.hero.eyebrow}
-        </p>
-        <h1 aria-label={content.hero.title} id="hero-title">
-          <span>{content.hero.titleStart}</span>
-          <em>{content.hero.titleEmphasis}</em>
-          <span>{content.hero.titleEnd}</span>
-        </h1>
-        <p className="hero__description">{content.hero.description}</p>
-        <div className="hero__actions">
-          <a
-            className="glass-button glass-button--primary"
-            href={latestDownloadUrl}
-          >
-            {content.hero.download}
-            <ArrowIcon />
-          </a>
-          <a className="text-button" href="#how-it-works">
-            {content.hero.secondaryAction}
-            <span aria-hidden="true">↓</span>
-          </a>
-        </div>
-        <LicenseKey
-          copiedLabel={content.hero.licenseCopiedLabel}
-          copyLabel={content.hero.licenseCopyLabel}
-          label={content.hero.licenseLabel}
-          licenseKey={betaLicenseKey}
-        />
-        <p className="hero__download-note">
-          {content.hero.platform}
-          <span aria-hidden="true">·</span>
-          {content.hero.security}
-        </p>
+    <div className="site-stack site-wrap">
+      <p className="site-mono">
+        {choose(
+          content,
+          "YOUR TOOLS. ALL TOGETHER.",
+          "带上你熟悉的工具，一起工作。",
+        )}
+      </p>
+      <div>
+        <span>
+          <b className="site-agent-symbol">✳</b> Claude Code
+        </span>
+        <span>
+          <b className="site-agent-symbol">⌘</b> Codex
+        </span>
+        <span>
+          <b className="site-agent-symbol">◈</b> Cursor
+        </span>
+        <span>
+          <b className="site-agent-symbol">▰</b> OpenCode
+        </span>
+        <span className="site-stack-terminal">
+          <b className="site-agent-symbol">›_</b>{" "}
+          {choose(content, "Your terminal", "你的终端")}
+        </span>
       </div>
-
-      <div className="hero__stage">
-        <HeroCarousel
-          carouselLabel={content.hero.carouselLabel}
-          controls={content.mediaControls}
-          nextDemoLabel={content.hero.nextDemoLabel}
-          previousDemoLabel={content.hero.previousDemoLabel}
-          showDemoLabel={content.hero.showDemoLabel}
-          slides={content.hero.slides}
-        />
-      </div>
-    </section>
+    </div>
   );
 }
 
-function Compatibility({ content }: { content: SiteContent }) {
+function Faq({ content }: Props) {
   return (
-    <section className="compatibility" id="product">
-      <div className="compatibility__copy">
-        <p className="section-kicker">{content.compatibility.eyebrow}</p>
-        <h2>{content.compatibility.heading}</h2>
+    <section className="site-faq site-wrap" id="faq">
+      <div>
+        <p className="site-mono">A FEW GOOD QUESTIONS</p>
+        <h2>{choose(content, "Glad you asked.", "你可能想知道。")}</h2>
       </div>
-      <div className="agent-list" aria-label={content.compatibility.eyebrow}>
-        {content.compatibility.agents.map((agent, index) => (
-          <span className="agent-pill" key={agent}>
-            <i aria-hidden="true">{String(index + 1).padStart(2, "0")}</i>
-            {agent}
-          </span>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Features({ content }: { content: SiteContent }) {
-  return (
-    <section className="features-section" id="features">
-      <div className="section-heading section-heading--split">
-        <div>
-          <p className="section-kicker">{content.features.eyebrow}</p>
-          <h2>{content.features.heading}</h2>
-        </div>
-        <p>{content.features.introduction}</p>
-      </div>
-      <div className="feature-grid">
-        {content.features.items.map((item, index) => (
-          <article className="feature-card" key={item.title}>
-            <div className="feature-card__top">
-              <span aria-hidden="true" className="feature-card__mark">
-                {item.mark}
-              </span>
-              <span className="feature-card__index">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-            </div>
-            <h3>{item.title}</h3>
-            <p>{item.body}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Trust({ content }: { content: SiteContent }) {
-  return (
-    <section className="trust-section" id="trust">
-      <div className="trust-section__intro">
-        <p className="section-kicker section-kicker--inverse">
-          {content.trust.eyebrow}
-        </p>
-        <h2>{content.trust.heading}</h2>
-        <p>{content.trust.introduction}</p>
-      </div>
-      <div className="trust-grid">
-        {content.trust.points.map((point, index) => (
-          <article className="trust-card" key={point.title}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <div>
-              <h3>{point.title}</h3>
-              <p>{point.body}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Faq({ content }: { content: SiteContent }) {
-  return (
-    <section className="faq-section" id="faq">
-      <div className="section-heading faq-section__heading">
-        <p className="section-kicker">{content.faq.eyebrow}</p>
-        <h2>{content.faq.heading}</h2>
-      </div>
-      <div className="faq-list">
-        {content.faq.items.map((item, index) => (
-          <details className="faq-item" key={item.question}>
+      <div className="site-faq-list">
+        {content.faq.items.map((item) => (
+          <details key={item.question}>
             <summary>
-              <span>{String(index + 1).padStart(2, "0")}</span>
-              <strong>{item.question}</strong>
-              <i aria-hidden="true">+</i>
+              {item.question}
+              <Icon name="plus" size={20} />
             </summary>
             <p>{item.answer}</p>
           </details>
@@ -226,68 +189,231 @@ function Faq({ content }: { content: SiteContent }) {
   );
 }
 
-function FinalCta({ content }: { content: SiteContent }) {
-  return (
-    <section className="final-cta" id="download">
-      <div className="final-cta__glow" aria-hidden="true" />
-      <p className="section-kicker">{content.finalCta.eyebrow}</p>
-      <h2>{content.finalCta.heading}</h2>
-      <p>{content.finalCta.body}</p>
-      <a
-        className="glass-button glass-button--primary final-cta__button"
-        href={latestDownloadUrl}
-      >
-        {content.finalCta.download}
-        <ArrowIcon />
-      </a>
-      <small>{content.finalCta.note}</small>
-    </section>
-  );
-}
-
-function Footer({ content }: { content: SiteContent }) {
-  return (
-    <footer className="site-footer">
-      <div>
-        <Brand />
-        <p>{content.footer.tagline}</p>
-      </div>
-      <div className="site-footer__links">
-        <a href={githubUrl}>GitHub</a>
-        <Link href={content.locale === "en" ? "/zh-cn" : "/"}>
-          {content.locale === "en" ? "中文" : "English"}
-        </Link>
-        <a href={latestDownloadUrl}>{content.nav.download}</a>
-      </div>
-      <p>
-        © 2026 Multisoul
-        <span aria-hidden="true">·</span>
-        {content.footer.privacy}
-      </p>
-    </footer>
-  );
-}
-
-export function MarketingPage({ content }: { content: SiteContent }) {
+function Closing({ content }: Props) {
   return (
     <>
+      <section className="site-closing" id="download">
+        <div className="site-wrap">
+          <span className="site-mono">LESS FRICTION. MORE FLOW.</span>
+          <h2>
+            {content.locale === "en" ? (
+              <>
+                Good work starts
+                <br />
+                with a little <span>norma.</span>
+              </>
+            ) : (
+              <>
+                下一件好作品，
+                <br />从 <span>norma</span> 开始。
+              </>
+            )}
+          </h2>
+          <p>
+            {choose(
+              content,
+              "Your agents are ready. Give them a place to work together.",
+              "你的 Agent 已经就位。给它们一个一起工作的地方。",
+            )}
+          </p>
+          <Download content={content} />
+          <small>
+            {choose(
+              content,
+              "Apple Silicon · Signed & notarized",
+              "Apple 芯片 · 已签名并公证",
+            )}
+          </small>
+          <LicenseKey
+            label={content.license.label}
+            licenseKey={betaLicenseKey}
+            copyLabel={content.license.copy}
+            copiedLabel={content.license.copied}
+          />
+        </div>
+      </section>
+    </>
+  );
+}
+
+export function MarketingPage({ content }: Props) {
+  return (
+    <div className="site" lang={content.locale} id="top">
+      <a className="skip-link" href="#main">
+        {choose(content, "Skip to content", "跳至主要内容")}
+      </a>
       <Header content={content} />
-      <main lang={content.locale}>
-        <Hero content={content} />
-        <Compatibility content={content} />
-        <ScrollStory
-          controls={content.mediaControls}
-          eyebrow={content.story.eyebrow}
-          heading={content.story.heading}
-          introduction={content.story.introduction}
-          steps={content.story.steps}
-        />
-        <Features content={content} />
-        <Trust content={content} />
+      <main id="main" lang={content.locale}>
+        <section className="site-hero site-wrap">
+          <div className="site-hero-copy">
+            <p className="site-kicker">
+              <span className="site-tag">MEET NORMA</span>
+              <span>YOUR AGENTS. IN GOOD COMPANY.</span>
+            </p>
+            <h1>
+              {choose(content, "Less", "少一点")}
+              <br />
+              {choose(content, "juggling.", "来回切换。")}
+              <br />
+              <span className="site-highlight">
+                {choose(content, "More building.", "多一点创造。")}
+              </span>
+            </h1>
+            <p className="site-lede">
+              {choose(
+                content,
+                "A home for your coding agents. Bring Codex, Claude Code, and every live task into one workspace. You set the direction. They work together.",
+                "让 Codex、Claude Code 和每个正在运行的任务，在同一个工作区相遇。你把握方向，Agent 一起推进。",
+              )}
+            </p>
+            <div className="site-hero-actions">
+              <Download content={content} />
+              <a className="site-watch" href="#in-action">
+                <span>
+                  <Icon name="play" size={15} />
+                </span>
+                {choose(content, "See it in action", "看看怎么工作")}
+              </a>
+            </div>
+            <p className="site-platform">
+              {choose(
+                content,
+                "For Apple Silicon Macs",
+                "适用于 Apple 芯片 Mac",
+              )}
+              <span>·</span>
+              {choose(content, "Local-first, always.", "本地优先，始终如此。")}
+            </p>
+          </div>
+          <NormaCloud chinese={content.locale === "zh-CN"} />
+        </section>
+        <Stack content={content} />
+        <section className="site-idea" id="how-it-works">
+          <div className="site-wrap site-idea-inner">
+            <div>
+              <p className="site-mono">01 / A LITTLE LESS CHAOS</p>
+              <h2>
+                {choose(content, "Many agents.", "多个 Agent。")}
+                <br />
+                {choose(content, "One train", "同一个")}
+                <br />
+                <span className="site-underline">
+                  {choose(content, "of thought.", "思路。")}
+                </span>
+              </h2>
+              <p className="site-section-copy">
+                {choose(
+                  content,
+                  "Great ideas don’t happen in a single tab. Give the whole process a place to live — from the first prompt to the final preview.",
+                  "好想法不会只发生在一个标签页里。从第一条指令，到最后一次预览，让整个过程都在眼前。",
+                )}
+              </p>
+            </div>
+            <div className="site-idea-list">
+              {[
+                [
+                  "01",
+                  "One brief. A whole team.",
+                  "一句话，调动整个团队。",
+                  "Give several agents a direction with one spoken instruction.",
+                  "用一条语音指令创建多个 Agent，并分别下发任务。",
+                ],
+                [
+                  "02",
+                  "Keep the work alive.",
+                  "切换视线，工作继续。",
+                  "Terminals, agents, and previews keep running as your attention moves.",
+                  "Agent、终端和预览保持运行，不因你的注意力转移而中断。",
+                ],
+                [
+                  "03",
+                  "Step in at the right moment.",
+                  "需要你时，再及时介入。",
+                  "See when an agent finishes or needs your attention. Pick up right there.",
+                  "直接看到哪个 Agent 完成了工作、哪个需要你，随时接上思路。",
+                ],
+              ].map(([num, title, zhTitle, body, zhBody]) => (
+                <article key={num}>
+                  <span className="site-mono">{num}</span>
+                  <div>
+                    <h3>{choose(content, title, zhTitle)}</h3>
+                    <p>{choose(content, body, zhBody)}</p>
+                  </div>
+                  <Icon name="arrow" />
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="site-demo site-wrap" id="in-action">
+          <div className="site-section-head">
+            <div>
+              <p className="site-mono">02 / LESS TALK. REAL WORK.</p>
+              <h2>
+                {choose(
+                  content,
+                  "Here’s the whole picture.",
+                  "工作全貌，尽在眼前。",
+                )}
+              </h2>
+            </div>
+            <p>
+              {choose(
+                content,
+                "Real agents. Real processes.\nActually running on your Mac.",
+                "真实的 Agent，真实的进程。\n就在你的 Mac 上运行。",
+              )}
+            </p>
+          </div>
+          <DemoGallery locale={content.locale} />
+        </section>
+        <section className="site-local site-wrap" id="local-first">
+          <span className="site-local-mark" aria-hidden="true">
+            ⌘
+          </span>
+          <div>
+            <p className="site-mono">ON YOUR MAC. ON YOUR TERMS.</p>
+            <h2>
+              {choose(
+                content,
+                "Your tools. Your rules.",
+                "你的工具。你的主场。",
+              )}
+            </h2>
+            <p>
+              {choose(
+                content,
+                "Keep your projects on your Mac and bring the agents you already use. Norma brings it together. You stay in charge.",
+                "项目文件留在你的 Mac，Agent 由你选择。Norma 让一切协同起来，决定权始终在你。",
+              )}
+            </p>
+          </div>
+          <span className="site-local-stamp">
+            LOCAL
+            <br />
+            FIRST <span>↙</span>
+          </span>
+        </section>
         <Faq content={content} />
-        <FinalCta content={content} />
+        <Closing content={content} />
       </main>
       <Footer content={content} />
-    </>
+    </div>
+  );
+}
+
+function Footer({ content }: Props) {
+  return (
+    <footer className="site-footer site-wrap">
+      <Logo />
+      <span>© 2026 Multisoul</span>
+      <p>
+        {choose(content, "Made for the way you think.", "为你的工作方式而造。")}
+      </p>
+      <a href={githubUrl} target="_blank" rel="noreferrer">
+        GitHub ↗
+      </a>
+      <a href="#top">{choose(content, "Back to top ↑", "回到顶部 ↑")}</a>
+    </footer>
   );
 }

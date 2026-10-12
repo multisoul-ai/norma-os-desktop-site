@@ -10,8 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "prototype:homepage": "next dev --port 3100",
-    "prototype:cloud-model": "node scripts/build-cloud-model.mjs"
+    "dev:site": "next dev --port 3100",
+    "build:cloud-model": "node scripts/build-cloud-model.mjs"
   },
   "dependencies": {
     "next": "16.2.6",

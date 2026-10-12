@@ -1,5 +1,3 @@
-import { Suspense } from "react";
-import { HomepagePrototypeHost } from "../../_components/homepage-prototype/homepage-prototype";
 import type { Metadata } from "next";
 import { MarketingPage } from "../../_components/marketing-page";
 import { chineseContent } from "../../site-content";
@@ -24,13 +22,5 @@ export const metadata: Metadata = {
 };
 
 export default function ChineseHome() {
-  const currentPage = <MarketingPage content={chineseContent} />;
-  if (process.env.NODE_ENV === "development") {
-    return (
-      <Suspense fallback={currentPage}>
-        <HomepagePrototypeHost content={chineseContent}>{currentPage}</HomepagePrototypeHost>
-      </Suspense>
-    );
-  }
-  return currentPage;
+  return <MarketingPage content={chineseContent} />;
 }
