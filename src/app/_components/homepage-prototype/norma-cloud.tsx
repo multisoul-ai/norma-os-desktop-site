@@ -200,7 +200,7 @@ export default function NormaCloud({ chinese, studio = false }: { chinese: boole
   const controller = useRef<CloudController | null>(null);
   const update = (key: string, next: string) => {
     const params = new URLSearchParams(search.toString());
-    params.set("mascot", "cloud"); params.set(key, next);
+    params.delete("mascot"); params.set(key, next);
     router.replace(`${path}?${params.toString()}`, { scroll: false });
   };
   const base = chinese ? "/zh-cn" : "/";
@@ -223,15 +223,16 @@ export default function NormaCloud({ chinese, studio = false }: { chinese: boole
         {(["calm", "rain", "storm"] as const).map(mode => <button key={mode} aria-pressed={weather === mode} onClick={() => update("weather", mode)}><span aria-hidden="true">{mode === "calm" ? "☁" : mode === "rain" ? "☂" : "ϟ"}</span>{chinese ? ({ calm: "悠闲", rain: "下雨", storm: "雷雨" }[mode]) : ({ calm: "Calm", rain: "Rain", storm: "Thunder" }[mode])}</button>)}
       </div>
     </div>
-    <div className="nc-bottomline"><span>{chinese ? "拖动转一转，换个天气。" : "Give it a spin. Change the weather."}</span>{!studio && <a href={`${base}?variant=A&view=mascots&mascot=cloud&tone=${tone}&weather=${weather}`}>{chinese ? "仔细看看" : "Meet the cloud"} ↗</a>}</div>
+    <div className="nc-bottomline"><span>{chinese ? "拖动转一转，换个天气。" : "Give it a spin. Change the weather."}</span>{!studio && <a href={`${base}?variant=A&view=mascots&tone=${tone}&weather=${weather}`}>{chinese ? "仔细看看" : "Meet the cloud"} ↗</a>}</div>
   </section>;
 }
 
 export function CloudStudio({ chinese }: { chinese: boolean }) {
   const search = useSearchParams(), base = chinese ? "/zh-cn" : "/";
-  const params = new URLSearchParams(search.toString()); params.delete("view");
+  const params = new URLSearchParams(search.toString());
+  params.delete("view"); params.delete("mascot"); params.set("variant", "A");
   return <main className="np nc-page">
-    <header className="nc-page-header"><a href={`${base}?variant=A&mascot=cloud`}><img src="/brand/app-icon.png" width="30" height="30" alt="" />norma<span>Character study</span></a><a href={`${base}?${params.toString()}`}>{chinese ? "放进官网看看" : "See it on the homepage"} ↗</a></header>
+    <header className="nc-page-header"><a href={`${base}?variant=A`}><img src="/brand/app-icon.png" width="30" height="30" alt="" />norma<span>Little cloud</span></a><a href={`${base}?${params.toString()}`}>{chinese ? "返回原型首页" : "Back to the homepage prototype"} ↗</a></header>
     <div className="nc-page-intro"><p>A LITTLE CLOUD. A LITTLE COMPANY.</p><h1>{chinese ? "今天，也有好心情。" : "A little lighter, every day."}</h1><span>{chinese ? "一朵小云，两种颜色。晴天、雨天，都陪着你。" : "One little cloud. Two colors. Here for you, rain or shine."}</span></div>
     <NormaCloud chinese={chinese} studio />
     <div className="nc-downloads"><a href="/brand/models/norma-cloud-black.glb" download>{chinese ? "下载墨黑模型" : "Download ink model"} ↓</a><span>·</span><a href="/brand/models/norma-cloud-white.glb" download>{chinese ? "下载奶白模型" : "Download milk model"} ↓</a><small>GLB · {chinese ? "含漂浮与眨眼动画" : "Float + blink animations"}</small></div>

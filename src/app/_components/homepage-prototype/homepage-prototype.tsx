@@ -15,8 +15,8 @@ import type { SiteContent } from "../../site-content";
 import { LicenseKey } from "../license-key";
 import "./prototype.css";
 
-const NormaMascot = dynamic(() => import("./norma-mascot"), { ssr: false });
-const MascotStudio = dynamic(() => import("./norma-mascot").then(module => module.MascotStudio), { ssr: false });
+const NormaCloud = dynamic(() => import("./norma-cloud"), { ssr: false });
+const CloudStudio = dynamic(() => import("./norma-cloud").then(module => module.CloudStudio), { ssr: false });
 
 type Props = { content: SiteContent };
 type Variant = "A" | "B" | "C";
@@ -95,7 +95,7 @@ function Closing({ content }: Props) {
 
 export function VariantA({ content }: Props) {
   return <div className="np np-a" lang={content.locale} id="top"><Header content={content} variant="A" /><main>
-    <section className="np-a-hero np-wrap"><div className="np-a-hero-copy"><p className="np-kicker"><span className="np-tag">MEET NORMA</span><span>YOUR AGENTS. IN GOOD COMPANY.</span></p><h1>{choose(content, "Less", "少一点")}<br />{choose(content, "juggling.", "来回切换。")}<br /><span className="np-highlight">{choose(content, "More building.", "多一点创造。")}</span></h1><p className="np-lede">{choose(content, "A home for your coding agents. Bring Codex, Claude Code, and every live task into one workspace. You set the direction. They work together.", "让 Codex、Claude Code 和每个正在运行的任务，在同一个工作区相遇。你把握方向，Agent 一起推进。")}</p><div className="np-hero-actions"><Download content={content} /><a className="np-watch" href="#in-action"><span><Icon name="play" size={15} /></span>{choose(content, "See it in action", "看看怎么工作")}</a></div><p className="np-platform">{choose(content, "For Apple Silicon Macs", "适用于 Apple 芯片 Mac")}<span>·</span>{choose(content, "Local-first, always.", "本地优先，始终如此。")}</p></div><NormaMascot chinese={content.locale === "zh-CN"} /></section>
+    <section className="np-a-hero np-wrap"><div className="np-a-hero-copy"><p className="np-kicker"><span className="np-tag">MEET NORMA</span><span>YOUR AGENTS. IN GOOD COMPANY.</span></p><h1>{choose(content, "Less", "少一点")}<br />{choose(content, "juggling.", "来回切换。")}<br /><span className="np-highlight">{choose(content, "More building.", "多一点创造。")}</span></h1><p className="np-lede">{choose(content, "A home for your coding agents. Bring Codex, Claude Code, and every live task into one workspace. You set the direction. They work together.", "让 Codex、Claude Code 和每个正在运行的任务，在同一个工作区相遇。你把握方向，Agent 一起推进。")}</p><div className="np-hero-actions"><Download content={content} /><a className="np-watch" href="#in-action"><span><Icon name="play" size={15} /></span>{choose(content, "See it in action", "看看怎么工作")}</a></div><p className="np-platform">{choose(content, "For Apple Silicon Macs", "适用于 Apple 芯片 Mac")}<span>·</span>{choose(content, "Local-first, always.", "本地优先，始终如此。")}</p></div><NormaCloud chinese={content.locale === "zh-CN"} /></section>
     <Stack content={content} />
     <section className="np-a-idea" id="how-it-works"><div className="np-wrap np-idea-inner"><div><p className="np-mono">01 / A LITTLE LESS CHAOS</p><h2>{choose(content, "Many agents.", "多个 Agent。")}<br />{choose(content, "One train", "同一个")}<br /><span className="np-underline">{choose(content, "of thought.", "思路。")}</span></h2><p className="np-section-copy">{choose(content, "Great ideas don’t happen in a single tab. Give the whole process a place to live — from the first prompt to the final preview.", "好想法不会只发生在一个标签页里。从第一条指令，到最后一次预览，让整个过程都在眼前。")}</p></div><div className="np-idea-list">{[["01", "One brief. A whole team.", "一句话，调动整个团队。", "Give several agents a direction with one spoken instruction.", "用一条语音指令创建多个 Agent，并分别下发任务。"], ["02", "Keep the work alive.", "切换视线，工作继续。", "Terminals, agents, and previews keep running as your attention moves.", "Agent、终端和预览保持运行，不因你的注意力转移而中断。"], ["03", "Step in at the right moment.", "需要你时，再及时介入。", "See when an agent finishes or needs your attention. Pick up right there.", "直接看到哪个 Agent 完成了工作、哪个需要你，随时接上思路。"]].map(([num, title, zhTitle, body, zhBody]) => <article key={num}><span className="np-mono">{num}</span><div><h3>{choose(content, title, zhTitle)}</h3><p>{choose(content, body, zhBody)}</p></div><Icon name="arrow" /></article>)}</div></div></section>
     <section className="np-a-demo np-wrap" id="in-action"><div className="np-section-head"><div><p className="np-mono">02 / LESS TALK. REAL WORK.</p><h2>{choose(content, "Here’s the whole picture.", "工作全貌，尽在眼前。")}</h2></div><p>{choose(content, "Real agents. Real processes.\nActually running on your Mac.", "真实的 Agent，真实的进程。\n就在你的 Mac 上运行。")}</p></div><DemoGallery content={content} /></section>
@@ -146,6 +146,6 @@ export function HomepagePrototypeHost({ content, children }: Props & { children:
   const search = useSearchParams();
   const variant = search.get("variant") as Variant | null;
   if (process.env.NODE_ENV !== "development" || !variant || !variants.includes(variant)) return children;
-  if (search.get("view") === "mascots") return <MascotStudio chinese={content.locale === "zh-CN"} />;
+  if (search.get("view") === "mascots") return <CloudStudio chinese={content.locale === "zh-CN"} />;
   return <><div key={`${content.locale}-${variant}`}>{variant === "A" ? <VariantA content={content} /> : variant === "B" ? <VariantB content={content} /> : <VariantC content={content} />}</div><PrototypeSwitcher content={content} variant={variant} /></>;
 }
