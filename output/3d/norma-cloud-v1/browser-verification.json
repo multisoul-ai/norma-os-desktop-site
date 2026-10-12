@@ -1,0 +1,17 @@
+{
+  "pauseFreezesCanvas": true,
+  "variants": "2 colors x 3 weather states",
+  "soundToggle": true,
+  "weatherAnimates": true,
+  "keyboardRotationAndReset": true,
+  "dragRotation": true,
+  "mobileWidths": [
+    320,
+    390,
+    768
+  ],
+  "english": true,
+  "reducedMotion": true,
+  "modelDownloads": true,
+  "runtimeErrors": []
+}

@@ -6,9 +6,10 @@ Norma OS 的中英文产品官网。网站把产品定义为 Coding Agent 的统
 
 - Next.js 16 App Router
 - React 19 + TypeScript
-- 原生 CSS、Liquid Glass 视觉系统与响应式布局
+- 原生 CSS、纸白与青柠视觉系统及响应式布局
 - `/` 英文路由与 `/zh-cn` 中文路由
-- 短循环视频、静态海报与按可见性控制的播放行为
+- 五段真实产品演示，按需播放，每次仅加载当前视频
+- 按需加载的 Three.js 墨黑云朵、自动轮换与点击互动
 - Vitest 页面结构与关键交互验收
 
 ## 本地开发
@@ -22,14 +23,18 @@ pnpm dev
 
 ## 页面结构
 
-1. 左右分栏 Hero 与直接下载
+1. 左右分栏 Hero、墨黑云朵与直接下载
 2. 兼容 Agent 列表
-3. 四章滚动产品故事
-4. 六项能力网格
+3. 三条工作方式说明
+4. 五段可切换的真实产品演示
 5. 本地优先信任区
 6. FAQ 与最终下载 CTA
 
-桌面端的产品故事使用一个粘性玻璃舞台；移动端在每个章节内展示对应媒体，不使用滚动劫持。
+用户已选择 A 方案作为中英文默认首页，无需 URL 参数。五段演示支持鼠标、触控与键盘选择，正文和初始海报由服务端呈现。
+
+云朵默认墨黑，首次自动演示听指令、Agent 协作、专注工作与任务完成，随后随机切换（含下雨、打雷）。点击或 Enter / 空格切换状态，拖动或左右键旋转，Home 回正，Esc 暂停或继续。离屏、后台和减少动态效果偏好会暂停自动动画；不支持 WebGL 时使用同款静态图。雷声只响应主动点击进入打雷状态。
+
+完整设计原型保存在 `codex/norma-homepage-prototype` 分支（`6e1d5d8`）。正式实现移除了 B/C、方案切换栏和模型展示页。使用 `pnpm dev:site` 在 3100 端口预览，使用 `pnpm build:cloud-model` 重建本地云朵模型。
 
 ## 质量检查
 
@@ -68,9 +73,10 @@ pnpm run deploy:production
 - `src/app/(zh)/zh-cn/page.tsx`：中文路由入口与中文元数据
 - `src/app/site-content.ts`：类型约束的双语内容
 - `src/app/_components/marketing-page.tsx`：共享页面结构
-- `src/app/_components/scroll-story.tsx`：响应滚动与手动选择的四章故事
+- `src/app/_components/demo-gallery.tsx`：按需加载的五段产品演示
+- `src/app/_components/norma-cloud/`：云朵、功能配件、天气与过渡动效
 - `src/app/globals.css`：品牌视觉、动效与响应式布局
 - `src/app/page.test.tsx`：核心叙事与导航验收
-- `public/media/`：压缩后的短循环占位视频与海报
+- `public/media/`：压缩后的真实产品视频与海报
 - `.github/workflows/publish.yml`：GitHub 质量门禁与 Vercel 生产发布
-- `docs/SPEC.md`：本次官网重构的实施规格
+- `docs/SPEC.md`：原版官网的历史规格；当前以已选 A 方案为准
