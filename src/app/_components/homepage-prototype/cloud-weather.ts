@@ -43,15 +43,26 @@ export function makeCloudWeather() {
   let lastStrike = -1;
   let weatherStart = 0;
   let previousMode: CloudWeather = "calm";
+  let activeMode: CloudWeather = "rain";
+  let started = 0, rainOpacity = 0, stormOpacity = 0, fromRain = 0, fromStorm = 0;
   return {
     root,
     update(time: number, mode: CloudWeather, motion: boolean) {
-      if (mode !== previousMode) { lastStrike = -1; previousMode = mode; weatherStart = time; }
-      root.visible = mode !== "calm";
+      if (mode !== previousMode) {
+        fromRain = rainOpacity; fromStorm = stormOpacity; started = time;
+        if (mode !== "calm") { activeMode = mode; lastStrike = -1; weatherStart = time; }
+        previousMode = mode;
+      }
+      const fraction = motion ? THREE.MathUtils.clamp((time - started) / 0.72, 0, 1) : 1;
+      const ease = fraction * fraction * (3 - 2 * fraction);
+      rainOpacity = THREE.MathUtils.lerp(fromRain, mode === "calm" ? 0 : 1, ease);
+      stormOpacity = THREE.MathUtils.lerp(fromStorm, mode === "storm" ? 1 : 0, ease);
+      dropMaterial.opacity = rainOpacity * 0.8;
+      root.visible = rainOpacity > 0.001 || stormOpacity > 0.001;
       if (!root.visible) return false;
       const t = motion ? time - weatherStart : 1.1;
       for (let i = 0; i < drops.count; i++) {
-        const phase = (t * (mode === "storm" ? 1.16 : 0.73) + i * 0.618034) % 1;
+        const phase = (t * (activeMode === "storm" ? 1.16 : 0.73) + i * 0.618034) % 1;
         const lane = ((i * 13) % 37) / 36;
         dummy.position.set((lane - 0.5) * 1.9 - phase * 0.10,
           -0.43 - phase * 1.05, ((i * 7) % 11) / 24 - 0.23);
@@ -66,11 +77,11 @@ export function makeCloudWeather() {
       const phase = t % 4.8;
       // One soft local glow per cycle. Reduced motion keeps a still lightning symbol.
       const pulse = motion ? Math.pow(Math.max(0, 1 - phase / 0.65), 2) : 0;
-      bolt.visible = mode === "storm";
-      boltMaterial.opacity = mode === "storm" ? 0.40 + pulse * 0.60 : 0;
+      bolt.visible = stormOpacity > 0.001;
+      boltMaterial.opacity = stormOpacity * (0.40 + pulse * 0.60);
       boltMaterial.emissiveIntensity = 0.3 + pulse * 1.3;
       bolt.scale.setScalar(0.86 + pulse * 0.14);
-      lightning.intensity = mode === "storm" ? pulse * 0.36 : 0;
+      lightning.intensity = stormOpacity * pulse * 0.36;
       const strike = mode === "storm" && motion && cycle !== lastStrike && phase < 0.4;
       if (strike) lastStrike = cycle;
       return strike;

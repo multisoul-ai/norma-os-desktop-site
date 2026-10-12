@@ -77,25 +77,57 @@ export function makeCloudActivities() {
     done.add(piece); return piece;
   });
 
-  let previous: CloudActivity = "calm", started = 0;
+  // Each activity owns its materials so outgoing and incoming props can overlap.
+  const transitions = new Map([...groups].map(([mode, item]) => {
+    const copies = new Map<THREE.Material, THREE.Material>();
+    item.traverse(object => {
+      if (!(object instanceof THREE.Mesh)) return;
+      const source = object.material as THREE.Material;
+      if (!copies.has(source)) {
+        const copy = source.clone(); copy.transparent = true; copy.opacity = 0;
+        materials.push(copy); copies.set(source, copy);
+      }
+      object.material = copies.get(source)!;
+    });
+    return [mode, { item, materials: [...copies.values()], opacity: 0, from: 0, target: 0, started: 0, activeSince: 0 }];
+  }));
+  const smooth = (value: number) => value * value * (3 - 2 * value);
+  let previous: CloudActivity = "calm";
   return {
     root,
     update(time: number, activity: CloudActivity, motion: boolean) {
-      if (previous !== activity) { previous = activity; started = time; }
-      const age = motion ? time - started : 2;
-      groups.forEach((item, mode) => { item.visible = mode === activity; });
-      bars.forEach((bar, i) => { bar.scale.y = motion ? 0.3 + Math.abs(Math.sin(age * 5 + i * 0.72)) * 0.85 : 0.4 + Math.sin(i * 0.8) ** 2 * 0.65; });
-      nodes.forEach((node, i) => { node.position.y = nodeHomes[i].y + (motion ? Math.sin(age * 1.9 + i * 2) * 0.035 : 0); });
-      signals.forEach((dot, i) => { dot.position.copy(paths[i].getPoint((age * 0.36 + i * 0.3) % 1)); });
-      const selected = motion ? Math.floor(age / 1.9) % 6 : 1;
-      selectedTile.position.copy(tiles[selected].position); selectedTile.position.z += 0.028;
-      badge.position.y = -0.42 + (motion ? Math.sin(age * 2) * 0.035 : 0);
+      if (previous !== activity) {
+        previous = activity;
+        transitions.forEach((state, mode) => {
+          state.from = state.opacity; state.target = mode === activity ? 1 : 0; state.started = time;
+          if (state.target) state.activeSince = time;
+        });
+      }
+      transitions.forEach(state => {
+        const progress = motion ? smooth(THREE.MathUtils.clamp((time - state.started) / 0.72, 0, 1)) : 1;
+        state.opacity = THREE.MathUtils.lerp(state.from, state.target, progress);
+        state.item.visible = state.opacity > 0.001;
+        state.item.scale.setScalar(0.93 + state.opacity * 0.07);
+        state.item.position.y = -(1 - state.opacity) * 0.08;
+        state.materials.forEach(surface => { surface.opacity = state.opacity; surface.depthWrite = state.opacity > 0.995; });
+      });
+      const age = (mode: CloudActivity) => motion ? time - transitions.get(mode)!.activeSince : 2;
+      bars.forEach((bar, i) => { bar.scale.y = motion ? 0.3 + Math.abs(Math.sin(age("voice") * 5 + i * 0.72)) * 0.85 : 0.4 + Math.sin(i * 0.8) ** 2 * 0.65; });
+      nodes.forEach((node, i) => { node.position.y = nodeHomes[i].y + (motion ? Math.sin(age("collaboration") * 1.9 + i * 2) * 0.035 : 0); });
+      signals.forEach((dot, i) => { dot.position.copy(paths[i].getPoint((age("collaboration") * 0.36 + i * 0.3) % 1)); });
+      const focusAge = age("focus"), step = Math.floor(focusAge / 2.1);
+      const selected = motion ? step % 6 : 1;
+      const from = motion && step > 0 ? (step - 1) % 6 : selected;
+      const glide = motion ? smooth(Math.min(1, (focusAge % 2.1) / 0.5)) : 1;
+      selectedTile.position.lerpVectors(tiles[from].position, tiles[selected].position, glide); selectedTile.position.z += 0.028;
+      const doneAge = age("done");
+      badge.position.y = -0.42 + (motion ? Math.sin(doneAge * 2) * 0.035 : 0);
       confetti.forEach((piece, i) => {
-        piece.visible = age < 2.7;
-        const angle = i / confetti.length * Math.PI * 2, distance = 0.35 + age * 0.36;
-        piece.position.set(1.0 + Math.cos(angle) * distance * 0.65, -0.34 + Math.sin(angle) * distance - age * age * 0.10, 0.6);
-        piece.rotation.z = angle + age * 1.2;
-        piece.scale.setScalar(Math.max(0, 1 - age / 2.7));
+        piece.visible = doneAge < 2.7;
+        const angle = i / confetti.length * Math.PI * 2, distance = 0.35 + doneAge * 0.36;
+        piece.position.set(1.0 + Math.cos(angle) * distance * 0.65, -0.34 + Math.sin(angle) * distance - doneAge * doneAge * 0.10, 0.6);
+        piece.rotation.z = angle + doneAge * 1.2;
+        piece.scale.setScalar(Math.max(0, 1 - doneAge / 2.7));
       });
     },
     dispose() { geometries.forEach(item => item.dispose()); materials.forEach(item => item.dispose()); },

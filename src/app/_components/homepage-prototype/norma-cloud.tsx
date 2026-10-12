@@ -115,15 +115,22 @@ function CloudViewport({ activity, chinese, onChange }: {
     }, undefined, () => { if (!disposed) setStatus("error"); });
 
     let elapsed = 0, last = performance.now(), frame = 0, visible = true, greetStart = -20;
-    let paused = false, nextActivityAt = 8 + Math.random() * 6;
+    let paused = false, activeTime = 0, nextActivityAt = 2.4;
+    // Show the product story once, then shuffle states without immediate repeats.
+    let automaticQueue: CloudActivity[] = ["voice", "collaboration", "focus", "done"];
     let audio: AudioContext | null = null;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const changeActivity = (next: CloudActivity) => {
+      live.current.activity = next;
+      live.current.onChange(next);
+      greetStart = elapsed;
+      nextActivityAt = activeTime + 4.8 + Math.random() * 1.4;
+    };
     const activate = () => {
       if (!loaded) return;
       const next = cloudActivities[(cloudActivities.indexOf(live.current.activity) + 1) % cloudActivities.length];
-      live.current.onChange(next);
       paused = false; container.dataset.paused = "false";
-      greetStart = elapsed; nextActivityAt = elapsed + 8 + Math.random() * 6;
+      changeActivity(next);
       // Sound is a response to an intentional interaction, never to an automatic state change.
       if (next === "storm") {
         try {
@@ -198,13 +205,20 @@ function CloudViewport({ activity, chinese, onChange }: {
     observer.observe(container);
     const animate = (now: number) => {
       frame = requestAnimationFrame(animate);
-      const delta = Math.min((now - last) / 1000, 0.05); last = now;
+      const wallDelta = (now - last) / 1000;
+      const delta = Math.min(wallDelta, 0.05); last = now;
       if (!visible || document.hidden) return;
-      if (!paused && !reduced.matches && loaded) { elapsed += delta; mixer?.update(delta); }
-      if (!paused && !reduced.matches && elapsed >= nextActivityAt) {
-        const choices = cloudActivities.filter(item => item !== live.current.activity);
-        live.current.onChange(choices[Math.floor(Math.random() * choices.length)]);
-        nextActivityAt = elapsed + 8 + Math.random() * 6;
+      if (!paused && !reduced.matches && loaded) { elapsed += delta; activeTime += wallDelta; mixer?.update(delta); }
+      if (!paused && !reduced.matches && loaded && activeTime >= nextActivityAt) {
+        automaticQueue = automaticQueue.filter(item => item !== live.current.activity);
+        if (!automaticQueue.length) {
+          automaticQueue = cloudActivities.filter(item => item !== live.current.activity);
+          for (let i = automaticQueue.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [automaticQueue[i], automaticQueue[j]] = [automaticQueue[j], automaticQueue[i]];
+          }
+        }
+        changeActivity(automaticQueue.shift()!);
       }
       const t = reduced.matches ? 0 : elapsed;
       const greeting = reduced.matches ? 0 : Math.max(0, 1 - (t - greetStart) / 1.5);
@@ -214,8 +228,9 @@ function CloudViewport({ activity, chinese, onChange }: {
       cloud.scale.set(1 / Math.sqrt(breath), breath, 1);
       shadow.scale.setScalar(1 - (cloud.position.y - 0.2) * 0.3);
       const activity = live.current.activity;
-      weatherEffect.update(t, activity === "rain" || activity === "storm" ? activity : "calm", !reduced.matches);
-      activityEffect.update(t, activity, !reduced.matches);
+      const effectTime = reduced.matches ? 0 : activeTime;
+      weatherEffect.update(effectTime, activity === "rain" || activity === "storm" ? activity : "calm", !reduced.matches);
+      activityEffect.update(effectTime, activity, !reduced.matches);
       if (!paused) orbit.update();
       renderer.render(scene, camera);
     };
@@ -253,15 +268,16 @@ const activityCopy: Record<CloudActivity, { word: string; zh: string; en: string
 
 export default function NormaCloud({ chinese, studio = false }: { chinese: boolean; studio?: boolean }) {
   const [activity, setActivity] = useState<CloudActivity>("calm");
-  const copy = activityCopy[activity];
   return <section className={`nc ${studio ? "nc-studio" : "nc-inline"}`} data-tone="black" data-activity={activity} data-weather={activity === "rain" || activity === "storm" ? activity : "calm"}>
     <div className="nc-topline"><span>NORMA / LITTLE CLOUD</span><span className="nc-live-dot" />{chinese ? "陪你，把事情做好" : "A little company. Good work."}</div>
     <div className="nc-stage">
-      <p className="nc-stage-word" aria-hidden="true">{copy.word}</p>
+      {cloudActivities.map(mode => <div className="nc-caption-layer" key={mode} data-active={mode === activity} aria-hidden={mode !== activity}>
+        <p className="nc-stage-word" aria-hidden="true">{activityCopy[mode].word}</p>
+        <p className="nc-activity-caption">{chinese ? activityCopy[mode].zh : activityCopy[mode].en}</p>
+      </div>)}
       <CloudViewport activity={activity} chinese={chinese} onChange={setActivity} />
-      <p className="nc-activity-caption" key={activity}>{chinese ? copy.zh : copy.en}</p>
     </div>
-    <div className="nc-bottomline"><span>{chinese ? "点点云朵，看看它在忙什么。" : "Tap the cloud. See what it’s up to."}</span><span>{chinese ? "也可以拖动转一转 ↗" : "Or give it a spin ↗"}</span></div>
+    <div className="nc-bottomline"><span>{chinese ? "它会自己切换，点一下也会回应。" : "It changes on its own. Tap to join in."}</span><span>{chinese ? "也可以拖动转一转 ↗" : "Or give it a spin ↗"}</span></div>
   </section>;
 }
 
